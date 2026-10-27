@@ -1,0 +1,223 @@
+{
+  "cards": [],
+  "replies": [
+    {
+      "id": "old-late",
+      "source": "user:late",
+      "items": [
+        {
+          "collection": "decisions",
+          "id": "D1",
+          "record_revision": 1,
+          "kind": "answer",
+          "option_id": "A",
+          "outcome": "stale"
+        }
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "revision": 3,
+  "conversation_id": "legacy-cosmetic",
+  "requests": [
+    {
+      "id": "R1",
+      "title": "Prepare report",
+      "done_when": "Verified report",
+      "status": "active",
+      "source": "user:fixture"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "request_id": "R1",
+      "revision": 1,
+      "question": "Which route?",
+      "why": "Permission needed",
+      "options": [
+        {
+          "id": "A",
+          "label": "A",
+          "impact": "Route A"
+        }
+      ],
+      "required": true,
+      "no_answer_behavior": "Wait",
+      "status": "open",
+      "urls": [
+        {
+          "label": "Help",
+          "url": "https://example.com/help"
+        }
+      ]
+    }
+  ],
+  "blockers": [],
+  "turn": {
+    "id": "T3",
+    "source": "user:fixture",
+    "summary": "Legacy compatibility fixture",
+    "end_reason": null
+  },
+  "history": [
+    {
+      "revision": 1,
+      "turn_id": "T1",
+      "changes": [
+        {
+          "collection": "requests",
+          "id": "R1",
+          "before": null,
+          "after": {
+            "id": "R1",
+            "title": "Prepare report",
+            "done_when": "Verified report",
+            "status": "active",
+            "source": "user:fixture"
+          }
+        },
+        {
+          "collection": "decisions",
+          "id": "D1",
+          "before": null,
+          "after": {
+            "id": "D1",
+            "request_id": "R1",
+            "revision": 1,
+            "question": "Which route?",
+            "why": "Permission needed",
+            "options": [
+              {
+                "id": "A",
+                "label": "A",
+                "impact": "Route A"
+              }
+            ],
+            "required": true,
+            "no_answer_behavior": "Wait",
+            "status": "open"
+          }
+        },
+        {
+          "collection": "turn",
+          "id": "T1",
+          "before": null,
+          "after": {
+            "id": "T1",
+            "source": "user:fixture",
+            "summary": "Legacy compatibility fixture",
+            "end_reason": null
+          }
+        }
+      ]
+    },
+    {
+      "revision": 2,
+      "turn_id": "T2",
+      "changes": [
+        {
+          "collection": "decisions",
+          "id": "D1",
+          "before": {
+            "id": "D1",
+            "request_id": "R1",
+            "revision": 1,
+            "question": "Which route?",
+            "why": "Permission needed",
+            "options": [
+              {
+                "id": "A",
+                "label": "A",
+                "impact": "Route A"
+              }
+            ],
+            "required": true,
+            "no_answer_behavior": "Wait",
+            "status": "open"
+          },
+          "after": {
+            "id": "D1",
+            "request_id": "R1",
+            "revision": 1,
+            "question": "Which route?",
+            "why": "Permission needed",
+            "options": [
+              {
+                "id": "A",
+                "label": "A",
+                "impact": "Route A"
+              }
+            ],
+            "required": true,
+            "no_answer_behavior": "Wait",
+            "status": "open",
+            "urls": [
+              {
+                "label": "Help",
+                "url": "https://example.com/help"
+              }
+            ]
+          }
+        },
+        {
+          "collection": "turn",
+          "id": "T2",
+          "before": {
+            "id": "T1",
+            "source": "user:fixture",
+            "summary": "Legacy compatibility fixture",
+            "end_reason": null
+          },
+          "after": {
+            "id": "T2",
+            "source": "user:fixture",
+            "summary": "Legacy compatibility fixture",
+            "end_reason": null
+          }
+        }
+      ]
+    },
+    {
+      "revision": 3,
+      "turn_id": "T3",
+      "changes": [
+        {
+          "collection": "replies",
+          "id": "old-late",
+          "before": null,
+          "after": {
+            "id": "old-late",
+            "source": "user:late",
+            "items": [
+              {
+                "collection": "decisions",
+                "id": "D1",
+                "record_revision": 1,
+                "kind": "answer",
+                "option_id": "A",
+                "outcome": "stale"
+              }
+            ]
+          }
+        },
+        {
+          "collection": "turn",
+          "id": "T3",
+          "before": {
+            "id": "T2",
+            "source": "user:fixture",
+            "summary": "Legacy compatibility fixture",
+            "end_reason": null
+          },
+          "after": {
+            "id": "T3",
+            "source": "user:fixture",
+            "summary": "Legacy compatibility fixture",
+            "end_reason": null
+          }
+        }
+      ]
+    }
+  ]
+}

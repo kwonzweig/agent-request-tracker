@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kwonzweig/codex-request-tracker/schema/journal.schema.json",
+  "title": "Request Journal saved state",
+  "$comment": "Backward-compatible version-1 shape contract. The writer additionally validates references, parent cycles, monotonic revisions, evidence, history consistency and reply/choice bindings. Cards and replies are optional in older files and default to empty arrays on read. Extra metadata, drafts and transport success cannot confer authorization. Source references cannot authenticate actual human authorship.",
+  "type": "object",
+  "required": ["schema_version", "conversation_id", "revision", "requests", "decisions", "blockers", "turn", "history"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "conversation_id": {"$ref": "#/$defs/id"},
+    "revision": {"type": "integer", "minimum": 0},
+    "requests": {"type": "array", "items": {"$ref": "#/$defs/request"}},
+    "decisions": {"type": "array", "items": {"$ref": "#/$defs/decision"}},
+    "blockers": {"type": "array", "items": {"$ref": "#/$defs/blocker"}},
+    "cards": {"type": "array", "items": {"$ref": "#/$defs/card"}, "default": []},
+    "replies": {"type": "array", "items": {"$ref": "#/$defs/reply"}, "default": []},
+    "turn": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/turn"}]},
+    "history": {"type": "array", "items": {"$ref": "#/$defs/history"}}
+  },
+  "$defs": {
+    "id": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "text": {"type": "string", "minLength": 1},
+    "nonblank": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "recorded_at": {"type": "string", "pattern": "^\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])T(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)(?![\\s\\S])", "description": "ISO receipt recording timestamp, not the time of the human action. The writer also validates the calendar date."},
+    "evidence": {"anyOf": [{"$ref": "#/$defs/text"}, {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/text"}}]},
+    "link_url": {"type": "string", "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://[^\\s\\u0000-\\u001f\\u007f/?#\\\\@]+(?:[/?#][^\\s\\u0000-\\u001f\\u007f\\\\]*)?(?![\\s\\S])", "description": "Absolute HTTP(S) URL without credentials. The writer also validates URL parsing."},
+    "urls": {"type": ["array", "null"], "items": {"type": "object", "required": ["label", "url"], "properties": {"label": {"$ref": "#/$defs/nonblank"}, "url": {"$ref": "#/$defs/link_url"}}}},
+    "attention": {
+      "type": ["object", "null"], "required": ["state", "actor", "source"],
+      "description": "Human attention is separate from work status. Later hides a card until an explicitly sourced pending reopening with a dependency reason. Terminal outcomes leave Attention without a second acknowledgment; hiding supplies no permission.",
+      "properties": {"state": {"enum": ["pending", "later", "acknowledged"]}, "actor": {"enum": ["user", "agent"]}, "source": {"$ref": "#/$defs/nonblank"}, "reason": {"$ref": "#/$defs/nonblank"}},
+      "allOf": [{"if": {"properties": {"state": {"enum": ["later", "acknowledged"]}}}, "then": {"properties": {"actor": {"const": "user"}}}}]
+    },
+    "nudge": {"type": ["object", "null"], "required": ["text", "priority"], "properties": {"text": {"$ref": "#/$defs/nonblank"}, "priority": {"enum": ["normal", "high"]}}},
+    "resolution": {
+      "type": "object", "required": ["actor", "source", "note"],
+      "description": "Attributed resolution or inference. Agent inference is distinct from a human answer and does not confer consent.",
+      "properties": {"actor": {"enum": ["user", "agent"]}, "source": {"$ref": "#/$defs/nonblank"}, "note": {"$ref": "#/$defs/nonblank"}, "option_id": {"$ref": "#/$defs/id"}, "text": {"$ref": "#/$defs/nonblank"}, "record_revision": {"type": "integer", "minimum": 1, "description": "Journal record revision independently verified. New blocker closure binds the current record; legacy resolutions may omit it."}}
+    },
+    "dismissal": {
+      "type": "object", "required": ["actor", "source", "reason"],
+      "description": "Attributed outcome that the card no longer applies. It does not claim its original obstacle was solved or supply an unanswered choice.",
+      "properties": {
+        "actor": {"enum": ["user", "agent"]}, "source": {"$ref": "#/$defs/nonblank"}, "reason": {"$ref": "#/$defs/nonblank"},
+        "replacement": {"type": "object", "required": ["collection", "id"], "properties": {"collection": {"enum": ["decisions", "blockers", "cards"]}, "id": {"$ref": "#/$defs/id"}}}
+      }
+    },
+    "dismissed_outcome": {
+      "if": {"required": ["status"], "properties": {"status": {"const": "dismissed"}}},
+      "then": {"required": ["dismissal"], "properties": {"dismissal": {"$ref": "#/$defs/dismissal"}}}
+    },
+    "answered_choice": {
+      "allOf": [
+        {"not": {"required": ["user_answer", "resolution"], "properties": {"user_answer": {"type": "object"}, "resolution": {"type": "object"}}}},
+        {"if": {"properties": {"status": {"const": "answered"}}}, "then": {"oneOf": [
+          {"required": ["user_answer"], "properties": {"user_answer": {"$ref": "#/$defs/answer"}}},
+          {"required": ["resolution"], "properties": {"resolution": {"allOf": [{"$ref": "#/$defs/resolution"}, {"properties": {"actor": {"const": "agent"}}, "anyOf": [{"required": ["option_id"]}, {"required": ["text"]}]}]}}}
+        ]}}
+      ]
+    },
+    "workspace": {
+      "type": "object", "required": ["id", "url"],
+      "description": "Optional external ticket or PR grouping. The id is a human display label; the full canonical URL identifies the workspace. A link does not change work state or grant authority.",
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "\\S"},
+        "url": {"$ref": "#/$defs/link_url"}
+      }
+    },
+    "request": {
+      "type": "object", "required": ["id", "title", "done_when", "status", "source"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "parent_id": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/id"}]},
+        "title": {"$ref": "#/$defs/text"}, "done_when": {"$ref": "#/$defs/evidence"},
+        "workspace": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/workspace"}]},
+        "urls": {"$ref": "#/$defs/urls"},
+        "status": {"enum": ["proposed", "active", "waiting", "deferred", "done", "cancelled"]},
+        "source": {"$ref": "#/$defs/text"}, "evidence": {"$ref": "#/$defs/evidence"},
+        "origin": {"enum": ["user", "agent_proposal"]}, "authority_source": {"$ref": "#/$defs/text"}
+      },
+      "allOf": [{"if": {"properties": {"status": {"const": "done"}}}, "then": {"required": ["evidence"]}}]
+    },
+    "decision": {
+      "type": "object", "required": ["id", "request_id", "revision", "question", "why", "options", "no_answer_behavior", "status"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "request_id": {"$ref": "#/$defs/id"}, "revision": {"type": "integer", "minimum": 1},
+        "question": {"$ref": "#/$defs/text"}, "why": {"$ref": "#/$defs/text"}, "no_answer_behavior": {"$ref": "#/$defs/text"},
+        "options": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "label", "impact"], "properties": {"id": {"$ref": "#/$defs/id"}, "label": {"$ref": "#/$defs/text"}, "impact": {"$ref": "#/$defs/text"}}}},
+        "recommendation": {"type": ["string", "null"]},
+        "attention": {"$ref": "#/$defs/attention"}, "nudge": {"$ref": "#/$defs/nudge"}, "urls": {"$ref": "#/$defs/urls"},
+        "resolution": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/resolution"}]},
+        "dismissal": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/dismissal"}]},
+        "status": {"enum": ["open", "answered", "deferred", "superseded", "dismissed"]},
+        "user_answer": {"anyOf": [{"type": "null"}, {"type": "object", "required": ["revision", "source"], "properties": {"revision": {"type": "integer", "minimum": 1}, "source": {"$ref": "#/$defs/text"}, "option_id": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/id"}]}, "text": {"$ref": "#/$defs/text"}}, "anyOf": [{"required": ["option_id"]}, {"required": ["text"]}]}]},
+        "agent_assumption": {}, "required": {"type": ["boolean", "null"]}
+      },
+      "allOf": [
+        {"$ref": "#/$defs/dismissed_outcome"},
+        {"$ref": "#/$defs/answered_choice"},
+        {"if": {"required": ["resolution"], "properties": {"status": {"const": "answered"}, "resolution": {"type": "object", "required": ["actor"], "properties": {"actor": {"const": "agent"}}}}}, "then": {"required": ["required"], "properties": {"required": {"const": false}}}}
+      ]
+    },
+    "blocker": {
+      "type": "object", "required": ["id", "request_id", "title", "evidence", "next_action", "owner", "status"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "request_id": {"$ref": "#/$defs/id"}, "title": {"$ref": "#/$defs/text"}, "evidence": {"$ref": "#/$defs/text"},
+        "next_action": {"$ref": "#/$defs/text"},
+        "attention": {"$ref": "#/$defs/attention"}, "nudge": {"$ref": "#/$defs/nudge"}, "urls": {"$ref": "#/$defs/urls"},
+        "resolution": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/resolution"}]},
+        "dismissal": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/dismissal"}]},
+        "revision": {"type": "integer", "minimum": 1},
+        "options": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/option"}},
+        "recommendation": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/nonblank"}]},
+        "user_answer": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/answer"}], "description": "An explicitly selected alternative. It reports the chosen path, without verifying or resolving the original obstacle."},
+        "action_url": {"type": "string", "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://[^\\s\\u0000-\\u001f\\u007f/?#\\\\]+(?:[/?#][^\\s\\u0000-\\u001f\\u007f\\\\]*)?(?![\\s\\S])", "description": "Optional absolute HTTP(S) URL for the next action. The writer also validates URL parsing. A link does not resolve the blocker."},
+        "owner": {"$ref": "#/$defs/text"}, "status": {"enum": ["open", "resolved", "dismissed"]}
+      },
+      "allOf": [
+        {"$ref": "#/$defs/dismissed_outcome"},
+        {"if": {"required": ["options"]}, "then": {"required": ["revision"]}},
+        {"if": {"required": ["user_answer"], "properties": {"user_answer": {"type": "object"}}}, "then": {"required": ["options", "revision"]}}
+      ]
+    },
+    "option": {
+      "type": "object", "required": ["id", "label", "impact"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "label": {"$ref": "#/$defs/nonblank"}, "impact": {"$ref": "#/$defs/nonblank"}}
+    },
+    "answer": {
+      "type": "object", "required": ["revision", "source"],
+      "properties": {"revision": {"type": "integer", "minimum": 1}, "source": {"$ref": "#/$defs/nonblank"}, "option_id": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/id"}]}, "text": {"$ref": "#/$defs/nonblank"}},
+      "anyOf": [{"required": ["option_id"], "properties": {"option_id": {"$ref": "#/$defs/id"}}}, {"required": ["text"]}]
+    },
+    "card": {
+      "type": "object", "required": ["id", "request_id", "revision", "type", "title", "body", "source", "status"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"}, "request_id": {"$ref": "#/$defs/id"}, "revision": {"type": "integer", "minimum": 1},
+        "type": {"enum": ["suggestion", "qa", "note", "completion"]}, "title": {"$ref": "#/$defs/nonblank"}, "body": {"$ref": "#/$defs/nonblank"}, "source": {"$ref": "#/$defs/nonblank"},
+        "completion": {"type": "object", "required": ["request_revision"], "additionalProperties": false, "properties": {"request_revision": {"type": "integer", "minimum": 1}}, "description": "Writer-generated completion event bound to the Request's committed journal revision. The result snapshot is separate from human acknowledgment."},
+        "status": {"enum": ["open", "answered", "resolved", "deferred", "superseded", "dismissed"]},
+        "attention": {"$ref": "#/$defs/attention"}, "nudge": {"$ref": "#/$defs/nudge"}, "urls": {"$ref": "#/$defs/urls"},
+        "resolution": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/resolution"}]},
+        "dismissal": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/dismissal"}]},
+        "options": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/option"}}, "recommendation": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/nonblank"}]},
+        "user_answer": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/answer"}]}
+      },
+      "allOf": [
+        {"$ref": "#/$defs/dismissed_outcome"},
+        {"if": {"properties": {"type": {"enum": ["qa", "note", "completion"]}}}, "then": {"not": {"anyOf": [{"required": ["options"]}, {"required": ["user_answer"]}]}}},
+        {"if": {"properties": {"type": {"const": "completion"}}}, "then": {"required": ["completion"]}, "else": {"not": {"required": ["completion"]}}},
+        {"if": {"properties": {"type": {"const": "suggestion"}}}, "then": {"$ref": "#/$defs/answered_choice"}},
+        {"if": {"required": ["user_answer"], "properties": {"type": {"const": "suggestion"}, "user_answer": {"type": "object"}}}, "then": {"required": ["options"]}}
+      ]
+    },
+    "reply_item": {
+      "description": "Persisted reply receipts, including legacy Blocker resolve and acknowledge reports. Retired Blocker actions can only be newly recorded as stale reports to reconcile earlier deliveries; accepted new actions are rejected. Only independent agent verification can resolve a Blocker.",
+      "type": "object", "required": ["collection", "id", "record_revision", "kind"],
+      "properties": {
+        "collection": {"enum": ["requests", "decisions", "blockers", "cards"]}, "id": {"$ref": "#/$defs/id"},
+        "record_revision": {"type": "integer", "minimum": 1, "description": "Journal revision in which the referenced record last changed, not its decision/card revision."},
+        "kind": {"enum": ["answer", "comment", "defer", "acknowledge", "resolve"]}, "outcome": {"enum": ["accepted", "stale"]}, "option_id": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/id"}]}, "text": {"$ref": "#/$defs/nonblank"}
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"const": "answer"}}}, "then": {"required": ["outcome"], "anyOf": [{"required": ["option_id"], "properties": {"option_id": {"$ref": "#/$defs/id"}}}, {"required": ["text"]}]}},
+        {"if": {"properties": {"kind": {"const": "comment"}}}, "then": {"required": ["text"], "properties": {"outcome": {"const": "accepted"}}}},
+        {"if": {"properties": {"kind": {"const": "defer"}}}, "then": {"required": ["outcome"], "properties": {"collection": {"enum": ["decisions", "blockers", "cards"]}}}},
+        {"if": {"properties": {"kind": {"const": "resolve"}}}, "then": {"required": ["outcome"], "properties": {"collection": {"enum": ["blockers", "cards"]}}}},
+        {"if": {"properties": {"kind": {"const": "acknowledge"}}}, "then": {"required": ["outcome"], "properties": {"collection": {"enum": ["decisions", "blockers", "cards"]}}}}
+      ]
+    },
+    "reply": {
+      "type": "object", "required": ["id", "source", "items"],
+      "description": "Immutable agent-committed receipt of an actual human message. Recording or accepting an item does not automatically apply an answer or change work state.",
+      "properties": {"id": {"$ref": "#/$defs/id"}, "source": {"$ref": "#/$defs/nonblank"}, "input_method": {"enum": ["card", "chat"], "description": "Supplied provenance of the received human input. Omission means unknown; source identifiers do not establish this value."}, "recorded_at": {"$ref": "#/$defs/recorded_at"}, "items": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/reply_item"}}}
+    },
+    "turn": {
+      "type": "object", "required": ["id", "source", "summary", "end_reason"],
+      "properties": {"id": {"$ref": "#/$defs/id"}, "source": {"$ref": "#/$defs/text"}, "summary": {"$ref": "#/$defs/text"}, "end_reason": {"enum": [null, "complete", "decision", "blocker", "user_paused", "answer_delivered", "background", "interrupted", "unknown"]}, "pause_source": {"$ref": "#/$defs/text"}, "continuing_run": {"type": ["object", "null"]}}
+    },
+    "history": {
+      "type": "object", "required": ["revision", "turn_id", "changes"],
+      "properties": {"revision": {"type": "integer", "minimum": 1}, "turn_id": {"$ref": "#/$defs/id"}, "changes": {"type": "array", "items": {
+        "type": "object", "required": ["collection", "id", "before", "after"],
+        "properties": {"collection": {"enum": ["requests", "decisions", "blockers", "cards", "replies", "turn"]}, "id": {"$ref": "#/$defs/id"}, "before": {}, "after": {}},
+        "allOf": [
+          {"if": {"properties": {"collection": {"const": "requests"}}}, "then": {"properties": {"before": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/request"}]}, "after": {"$ref": "#/$defs/request"}}}},
+          {"if": {"properties": {"collection": {"const": "decisions"}}}, "then": {"properties": {"before": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/decision"}]}, "after": {"$ref": "#/$defs/decision"}}}},
+          {"if": {"properties": {"collection": {"const": "blockers"}}}, "then": {"properties": {"before": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/blocker"}]}, "after": {"$ref": "#/$defs/blocker"}}}},
+          {"if": {"properties": {"collection": {"const": "cards"}}}, "then": {"properties": {"before": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/card"}]}, "after": {"$ref": "#/$defs/card"}}}},
+          {"if": {"properties": {"collection": {"const": "replies"}}}, "then": {"properties": {"before": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/reply"}]}, "after": {"$ref": "#/$defs/reply"}}}}
+        ]
+      }}}
+    }
+  }
+}

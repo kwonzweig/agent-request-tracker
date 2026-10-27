@@ -1,0 +1,13 @@
+node_modules/
+.runtime/
+.journal/
+runtime/
+*.local.json
+plugin/dist/
+plugin/skills/
+plugin/schema/
+plugin/.codex-plugin/
+plugin/.mcp.json
+plugin/LICENSE
+plugin/THIRD_PARTY_NOTICES.txt
+docs-site/public/demo.html

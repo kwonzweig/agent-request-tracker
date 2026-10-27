@@ -1,0 +1,44 @@
+{
+  "name": "request-journal",
+  "version": "0.6.0",
+  "description": "A Codex plugin that tracks your requests and decisions across a conversation.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kwonzweig/codex-request-tracker.git"
+  },
+  "homepage": "https://github.com/kwonzweig/codex-request-tracker#readme",
+  "bugs": {
+    "url": "https://github.com/kwonzweig/codex-request-tracker/issues"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "npm run build && node scripts/check-package.mjs && npm run demo:build && npm test",
+    "demo:build": "node scripts/build-demo.mjs",
+    "demo": "npm run demo:build && node scripts/serve-demo.mjs",
+    "preview:build": "node scripts/preview.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "start": "node plugin/dist/server.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "1.7.5",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@openai/mcp-extensions": "0.1.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "esbuild": "0.28.2",
+    "linkedom": "^0.18.12"
+  },
+  "overrides": {
+    "@openai/mcp-extensions": {
+      "zod": "$zod"
+    }
+  }
+}

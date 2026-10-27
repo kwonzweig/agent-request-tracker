@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "revision": 2,
+  "conversation_id": "example-conversation",
+  "requests": [
+    {
+      "id": "R1",
+      "parent_id": null,
+      "title": "Keep requests visible across turns",
+      "done_when": [
+        "Saved JSON persists across turns",
+        "Native cards display saved changes"
+      ],
+      "origin": "user",
+      "source": "example:user:1",
+      "status": "active"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "request_id": "R1",
+      "revision": 1,
+      "question": "Which display should the first version use?",
+      "why": "Choose the initial user surface",
+      "options": [
+        {
+          "id": "native",
+          "label": "Existing chat surface",
+          "impact": "Preserves JSON and cards without a separate app"
+        },
+        {
+          "id": "app",
+          "label": "Separate app",
+          "impact": "Adds an application to install and maintain"
+        }
+      ],
+      "recommendation": "native",
+      "no_answer_behavior": "Continue authorized research; do not assume approval",
+      "required": false,
+      "status": "answered",
+      "agent_assumption": null,
+      "user_answer": {
+        "revision": 1,
+        "option_id": "native",
+        "source": "example:user:2",
+        "text": "Use native cards, provided persistence remains."
+      }
+    }
+  ],
+  "blockers": [],
+  "turn": {
+    "id": "T2",
+    "source": "example:user:2",
+    "summary": "User selects native surface; implementation remains active",
+    "end_reason": null
+  },
+  "history": [
+    {
+      "revision": 1,
+      "turn_id": "T1",
+      "changes": [
+        {
+          "collection": "requests",
+          "id": "R1",
+          "before": null,
+          "after": {
+            "id": "R1",
+            "parent_id": null,
+            "title": "Keep requests visible across turns",
+            "done_when": [
+              "Saved JSON persists across turns",
+              "Native cards display saved changes"
+            ],
+            "origin": "user",
+            "source": "example:user:1",
+            "status": "active"
+          }
+        },
+        {
+          "collection": "decisions",
+          "id": "D1",
+          "before": null,
+          "after": {
+            "id": "D1",
+            "request_id": "R1",
+            "revision": 1,
+            "question": "Which display should the first version use?",
+            "why": "Choose the initial user surface",
+            "options": [
+              {
+                "id": "native",
+                "label": "Existing chat surface",
+                "impact": "Preserves JSON and cards without a separate app"
+              },
+              {
+                "id": "app",
+                "label": "Separate app",
+                "impact": "Adds an application to install and maintain"
+              }
+            ],
+            "recommendation": "native",
+            "no_answer_behavior": "Continue authorized research; do not assume approval",
+            "required": false,
+            "status": "open",
+            "agent_assumption": null
+          }
+        },
+        {
+          "collection": "turn",
+          "id": "T1",
+          "before": null,
+          "after": {
+            "id": "T1",
+            "source": "example:user:1",
+            "summary": "Illustrative request, not a real conversation",
+            "end_reason": null
+          }
+        }
+      ]
+    },
+    {
+      "revision": 2,
+      "turn_id": "T2",
+      "changes": [
+        {
+          "collection": "decisions",
+          "id": "D1",
+          "before": {
+            "id": "D1",
+            "request_id": "R1",
+            "revision": 1,
+            "question": "Which display should the first version use?",
+            "why": "Choose the initial user surface",
+            "options": [
+              {
+                "id": "native",
+                "label": "Existing chat surface",
+                "impact": "Preserves JSON and cards without a separate app"
+              },
+              {
+                "id": "app",
+                "label": "Separate app",
+                "impact": "Adds an application to install and maintain"
+              }
+            ],
+            "recommendation": "native",
+            "no_answer_behavior": "Continue authorized research; do not assume approval",
+            "required": false,
+            "status": "open",
+            "agent_assumption": null
+          },
+          "after": {
+            "id": "D1",
+            "request_id": "R1",
+            "revision": 1,
+            "question": "Which display should the first version use?",
+            "why": "Choose the initial user surface",
+            "options": [
+              {
+                "id": "native",
+                "label": "Existing chat surface",
+                "impact": "Preserves JSON and cards without a separate app"
+              },
+              {
+                "id": "app",
+                "label": "Separate app",
+                "impact": "Adds an application to install and maintain"
+              }
+            ],
+            "recommendation": "native",
+            "no_answer_behavior": "Continue authorized research; do not assume approval",
+            "required": false,
+            "status": "answered",
+            "agent_assumption": null,
+            "user_answer": {
+              "revision": 1,
+              "option_id": "native",
+              "source": "example:user:2",
+              "text": "Use native cards, provided persistence remains."
+            }
+          }
+        },
+        {
+          "collection": "turn",
+          "id": "T2",
+          "before": {
+            "id": "T1",
+            "source": "example:user:1",
+            "summary": "Illustrative request, not a real conversation",
+            "end_reason": null
+          },
+          "after": {
+            "id": "T2",
+            "source": "example:user:2",
+            "summary": "User selects native surface; implementation remains active",
+            "end_reason": null
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "SessionStart": [{"hooks":[{"type":"command","command":"node \"${PLUGIN_ROOT}/dist/hook.mjs\"","additionalContextLimit":700}]}],
+    "UserPromptSubmit": [{"hooks":[{"type":"command","command":"node \"${PLUGIN_ROOT}/dist/hook.mjs\"","additionalContextLimit":700}]}],
+    "Stop": [{"hooks":[{"type":"command","command":"node \"${PLUGIN_ROOT}/dist/hook.mjs\""}]}],
+    "Interrupt": [{"hooks":[{"type":"command","command":"node \"${PLUGIN_ROOT}/dist/hook.mjs\"","timeout":1}]}]
+  }
+}

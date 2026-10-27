@@ -1,0 +1,5 @@
+{
+  "name": "request-journal-local",
+  "interface": { "displayName": "Request Tracker" },
+  "plugins": [{ "name": "request-journal", "source": { "source": "local", "path": "./plugin" }, "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" }, "category": "Productivity" }]
+}

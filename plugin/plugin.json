@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "request-journal",
+  "version": "0.6.0",
+  "description": "A Codex plugin that tracks your requests and decisions across a conversation.",
+  "extensions": {
+    "com.openai": {
+      "hooks": "./hooks/hooks.json",
+      "interface": {
+        "displayName": "Request Tracker",
+        "shortDescription": "Keep requests and decisions visible across turns",
+        "category": "Productivity",
+        "developerName": "kwonzweig"
+      }
+    }
+  }
+}

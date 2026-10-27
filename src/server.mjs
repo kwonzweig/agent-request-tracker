@@ -9,7 +9,7 @@ import { readJournal, updateJournal, markCardRead, evaluateStop } from './store.
 import { dataDir } from './paths.mjs';
 import { isJournalId } from './identity.mjs';
 
-const runtimeVersion = '0.6.0';
+const runtimeVersion = '0.6.1';
 const server = new McpServer({ name: 'request-journal', version: runtimeVersion });
 const uri = 'ui://request-journal/tracker.html';
 const id = z.string().min(1).max(128).refine(isJournalId,'Use a safe journal identifier');

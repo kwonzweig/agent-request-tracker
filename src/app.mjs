@@ -5,7 +5,7 @@ import { workspaceGroups, turnChanges, attentionState, needsAttention, attention
 import { formatReplyText } from './reply-text.mjs';
 import { evaluateCompletion, evaluateStopAssessment } from './completion.mjs';
 
-const app = new App({ name: 'Request Tracker', version: '0.6.0' });
+const app = new App({ name: 'Request Tracker', version: '0.6.1' });
 const extensions = new OpenAIExtensions(app);
 const $ = id => document.getElementById(id);
 const root = $('rjc');
@@ -545,25 +545,34 @@ function retainedComment(draft) {
   return draft.kind === 'comment' && draft.collection !== 'requests' && !draftNeedsAttention(draft) &&
     recordRevision(current, draft.collection, draft.id) > draft.record_revision;
 }
-function acceptedReadDraftReceipt(draft) {
+function readDraftAcknowledgment(draft) {
   if (draft.kind !== 'resolve' || draft.collection !== 'cards') return null;
   const original = journalAt(current, draft.record_revision).cards.find(record => record.id === draft.id);
   if (!canResolve(draft.collection, original)) return null;
-  return current.replies.find(receipt => receipt.items.some(item => item.outcome === 'accepted' && item.kind === 'resolve' &&
+  const receipt = current.replies.find(receipt => receipt.items.some(item => item.outcome === 'accepted' && item.kind === 'resolve' &&
     item.collection === draft.collection && item.id === draft.id && item.record_revision === draft.record_revision));
+  if (receipt) return ['read-receipt', receipt.id];
+  if (drafts.delivery?.items.some(item => draftKey(item) === draftKey(draft))) return null;
+  const source = `app:journal_mark_read:${draft.id}:${draft.record_revision}`;
+  // A material reopen clears the current resolution, but the exact app-only
+  // read binding remains authoritative in history. It is not a chat receipt.
+  const saved = current.history.some(event => event.changes.some(change => change.collection === 'cards' && change.id === draft.id &&
+    change.after?.status === 'resolved' && change.after.resolution?.actor === 'user' &&
+    change.after.resolution.record_revision === draft.record_revision && change.after.resolution.source === source));
+  return saved ? ['read-save', source] : null;
 }
 function retireReadDrafts() {
   const candidates = new Map([...drafts.drafts.values(), ...[...(drafts.actionCandidates?.values() ?? [])].flat()]
     .map(draft => [JSON.stringify([draftKey(draft), draft.token]), draft]));
   for (const draft of candidates.values()) {
-    const receipt = acceptedReadDraftReceipt(draft);
-    if (!receipt) continue;
+    const acknowledgment = readDraftAcknowledgment(draft);
+    if (!acknowledgment) continue;
     const key = draftKey(draft);
     if (draft.token === undefined) drafts.remove(key);
-    else drafts.writeItem(key, null, draft.token, JSON.stringify(['read-receipt', receipt.id, key, draft.token]));
+    else drafts.writeItem(key, null, draft.token, JSON.stringify([...acknowledgment, key, draft.token]));
   }
   if (drafts.sharedConflict && drafts.sharedConflictTargets?.length) {
-    drafts.sharedConflictTargets = drafts.sharedConflictTargets.filter(target => !acceptedReadDraftReceipt(target));
+    drafts.sharedConflictTargets = drafts.sharedConflictTargets.filter(target => !readDraftAcknowledgment(target));
     drafts.sharedConflict = drafts.sharedConflictTargets.length > 0;
   }
 }
@@ -571,9 +580,9 @@ function inspectReplies() {
   const inspected = drafts.inspect(current);
   const sharedConflict = !!drafts.sharedConflict && (!drafts.sharedConflictTargets?.length ||
     drafts.sharedConflictTargets.some(draftNeedsAttention));
-  return { ...inspected, stale: inspected.stale.filter(draft => !acceptedReadDraftReceipt(draft) && draftNeedsAttention(draft)), sharedConflict,
-    items: inspected.items.filter(item => !acceptedReadDraftReceipt(item) && !retainedComment(item)),
-    retained: [...inspected.stale.filter(draft => !acceptedReadDraftReceipt(draft) && !draftNeedsAttention(draft)), ...inspected.items.filter(retainedComment)] };
+  return { ...inspected, stale: inspected.stale.filter(draft => !readDraftAcknowledgment(draft) && draftNeedsAttention(draft)), sharedConflict,
+    items: inspected.items.filter(item => !readDraftAcknowledgment(item) && !retainedComment(item)),
+    retained: [...inspected.stale.filter(draft => !readDraftAcknowledgment(draft) && !draftNeedsAttention(draft)), ...inspected.items.filter(retainedComment)] };
 }
 function drawStaleDraft(parent, draft, pending = true) {
   const warning = add(parent, 'div', undefined, 'jc-warning');
@@ -1059,7 +1068,7 @@ async function sendReply() {
   try {
     await readLatest();
     const inspected = inspectReplies();
-    const remainingIntended = intendedItems.filter(item => !acceptedReadDraftReceipt(item));
+    const remainingIntended = intendedItems.filter(item => !readDraftAcknowledgment(item));
     if (JSON.stringify(inspected.items) !== JSON.stringify(remainingIntended)) {
       render();
       notice('A reply changed in another view. Review the updated reply, then send again.', true);

@@ -1,6 +1,6 @@
 {
   "name": "request-journal",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A Codex plugin that tracks your requests and decisions across a conversation.",
   "license": "MIT",
   "repository": {

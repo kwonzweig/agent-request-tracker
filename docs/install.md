@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Git and access to this private repository.
+- Git.
 - Node.js 22 or later, with `node` and `npm` on the host's PATH.
 - A Codex CLI with plugin commands. Check `codex --version` and `codex plugin list --help`; the local check requires `--json` and `--marketplace` support.
 - A local Codex host with plugins and MCP Apps, including app-to-tool calls for **Mark as read**.
@@ -14,8 +14,8 @@
 Clone the repository and run the demo from the checkout:
 
 ```sh
-git clone https://github.com/kwonzweig/codex-request-tracker.git
-cd codex-request-tracker
+git clone https://github.com/kwonzweig/agent-request-tracker.git
+cd agent-request-tracker
 npm ci --ignore-scripts
 npm run demo
 ```
@@ -25,8 +25,8 @@ Open the printed localhost URL. The demo uses fictional records and the producti
 ## Build and add
 
 ```sh
-git clone https://github.com/kwonzweig/codex-request-tracker.git
-cd codex-request-tracker
+git clone https://github.com/kwonzweig/agent-request-tracker.git
+cd agent-request-tracker
 npm ci --ignore-scripts
 npm run check
 codex plugin marketplace add .

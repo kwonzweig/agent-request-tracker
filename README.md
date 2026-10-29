@@ -1,4 +1,4 @@
-# Request Tracker
+# Agent Request Tracker
 
 Request Tracker is a stateful Codex plugin that keeps requests and decisions visible as a conversation grows. See what is unfinished, answer the choices that need you, and find what you already agreed to without rereading the chat.
 
@@ -8,7 +8,9 @@ Ask for a weekly reading digest, detour into a broken inbox connection, then ret
 
 ## Install
 
-Try the [local demo](docs/install.md#try-without-installing), or follow the [installation guide](docs/install.md) to add the plugin to Codex. This repository is private; cloning it requires access. The guide covers prerequisites, updates, removal and an isolated installation check.
+Try the [local demo](docs/install.md#try-without-installing), or follow the [installation guide](docs/install.md) to add the plugin to Codex. The guide covers prerequisites, updates, removal and an isolated installation check.
+
+Codex is supported. [Claude Code support](adapters/claude-code/README.md) is planned.
 
 ## Use
 

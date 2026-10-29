@@ -5,11 +5,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kwonzweig/codex-request-tracker.git"
+    "url": "git+https://github.com/kwonzweig/agent-request-tracker.git"
   },
-  "homepage": "https://github.com/kwonzweig/codex-request-tracker#readme",
+  "homepage": "https://github.com/kwonzweig/agent-request-tracker#readme",
   "bugs": {
-    "url": "https://github.com/kwonzweig/codex-request-tracker/issues"
+    "url": "https://github.com/kwonzweig/agent-request-tracker/issues"
   },
   "private": true,
   "type": "module",

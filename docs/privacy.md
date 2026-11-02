@@ -5,6 +5,7 @@ Request Tracker saves the requests, choices and other records the agent writes f
 | Location | Contents |
 | --- | --- |
 | Local journal directory | Requests, cards, submitted replies, source references and change history. |
+| `tracking/` and `presentations/` within that directory | Per-conversation ON/OFF settings and the last requested display's turn and revision. |
 | Host webview storage | Unsent drafts and reply-delivery state. |
 | Current AI conversation | Tool results and replies you submit. |
 
@@ -18,7 +19,7 @@ Request Tracker has no separate account, model API service or telemetry service.
 
 Removing the plugin leaves journals in place. Back up or delete the journal directory separately when you no longer want the records. Removing journal files does not clear webview drafts or delivery state; use your host's storage controls for those. There is no combined delete-all-data command.
 
-To stop tracking one conversation, tell the agent to stop and move that conversation's journal out of the active directory while it is not running. A saved journal enrolls the conversation for hooks, so a verbal request alone does not remove that enrollment. There is no permanent per-conversation opt-out switch; creating a journal again enables tracking again. Disabling the plugin affects every conversation using it.
+Say “Turn Request Tracker off in this conversation.” The agent saves OFF through `journal_tracking`; the journal stays in place, and tracking hooks stop for that conversation. Turning it ON again resumes the saved records. Other conversations are unaffected. Existing journals from versions before the switch remain ON until explicitly turned OFF. Disabling the plugin itself still affects every conversation using it.
 
 ## Local demo
 

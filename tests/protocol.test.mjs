@@ -17,6 +17,7 @@ test('source MCP advertises cards and receipts and accepts a receipt with its se
     assert.ok(update.inputSchema.properties.upsert.properties.cards);
     assert.ok(update.inputSchema.properties.upsert.properties.replies);
     const turn = { id: 'T1', source: 'user:1', summary: 'Capture optional preference', end_reason: null };
+    await client.callTool({ name: 'journal_tracking', arguments: { conversation_id: 'c', enabled: true } });
     const first = await client.callTool({ name: 'journal_update', arguments: { conversation_id: 'c', expected_revision: 0, turn, upsert: {
       requests: [{ id: 'R1', title: 'Deliver the requested outcome', done_when: 'Verified output', source: 'user:1', status: 'active' }],
       cards: [{ id: 'C1', request_id: 'R1', revision: 1, type: 'suggestion', title: 'An optional preference', body: 'The preference does not block work.', source: 'agent:1', status: 'open', options: [{ id: 'A', label: 'A', impact: 'First effect' }] }],

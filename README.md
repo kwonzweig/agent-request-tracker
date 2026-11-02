@@ -16,7 +16,13 @@ Codex is supported. [Claude Code support](adapters/claude-code/README.md) is pla
 
 In a conversation, ask:
 
-> Use Request Tracker in this conversation. Track my requests and unresolved choices.
+> Turn Request Tracker on in this conversation.
+
+New conversations start OFF. Once ON, tracking stays on across turns and restarts until you say:
+
+> Turn Request Tracker off in this conversation.
+
+OFF keeps your records. Turn it on again to resume; other conversations are unaffected.
 
 The agent maintains the records. Use Attention to answer a question or review a result; Requests, Cards and History let you return to earlier work. You can reply in chat or select a card option and press **Send reply**. Selecting an option alone leaves a draft.
 

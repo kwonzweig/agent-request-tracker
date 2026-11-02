@@ -62,7 +62,7 @@ test('packaged MCP preflight advertises writes but performs only reads and does 
   const dataDir = join(dir, 'not-created');
   const result = await checkPackagedProtocol(resolve('plugin'), { dataDir });
   assert.equal(result.status, 'passed');
-  assert.deepEqual(result.tools, ['journal_mark_read', 'journal_read', 'journal_show', 'journal_update']);
+  assert.deepEqual(result.tools, ['journal_mark_read', 'journal_read', 'journal_show', 'journal_tracking', 'journal_update']);
   assert.equal(result.journal_read, 'passed_empty_isolated_read');
   assert.equal(result.journal_update, 'advertised_not_invoked');
   assert.equal(result.journal_mark_read, 'advertised_app_only_not_invoked');

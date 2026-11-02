@@ -97,13 +97,13 @@ export async function checkPackagedProtocol(root, { dataDir = join(tmpdir(), `re
     requireCheck(server?.name === name && safeSegment(server.version), 'MCP_SERVER_IDENTITY_MISMATCH');
     const listed = await client.listTools({}, requestOptions);
     const tools = listed.tools.map(tool => tool.name).sort();
-    requireCheck(isDeepStrictEqual(tools, ['journal_mark_read', 'journal_read', 'journal_show', 'journal_update']), 'MCP_TOOLS_MISMATCH');
+    requireCheck(isDeepStrictEqual(tools, ['journal_mark_read', 'journal_read', 'journal_show', 'journal_tracking', 'journal_update']), 'MCP_TOOLS_MISMATCH');
     for (const tool of listed.tools) {
       if (tool.name === 'journal_show') {
         requireCheck(tool._meta?.ui?.resourceUri === resourceUri && tool._meta?.['ui/resourceUri'] === resourceUri, 'MCP_UI_BINDING_MISMATCH');
       } else {
-        if (tool.name === 'journal_update' || tool.name === 'journal_mark_read') {
-          const visibility = [tool.name === 'journal_update' ? 'model' : 'app'];
+        if (['journal_update', 'journal_tracking', 'journal_mark_read'].includes(tool.name)) {
+          const visibility = [tool.name === 'journal_mark_read' ? 'app' : 'model'];
           requireCheck(isDeepStrictEqual(tool._meta?.ui?.visibility, visibility), 'MCP_TOOL_VISIBILITY_MISMATCH');
           requireCheck(isDeepStrictEqual(tool._meta.ui, { visibility }), 'MCP_UI_BINDING_MISMATCH');
         } else requireCheck(tool._meta?.ui === undefined, 'MCP_UI_BINDING_MISMATCH');
@@ -129,7 +129,7 @@ export async function checkPackagedProtocol(root, { dataDir = join(tmpdir(), `re
     requireCheck(html?.mimeType === 'text/html;profile=mcp-app' && typeof html.text === 'string' && /Request Tracker/.test(html.text) && !/JOURNAL_SCRIPT/.test(html.text), 'MCP_UI_RESOURCE_CHECK_FAILED');
     requireCheck(!(await exists(dataDir)), 'MCP_READ_CREATED_STORAGE');
     return { status: 'passed', server: { name: server.name, version: server.version }, tools,
-      journal_read: 'passed_empty_isolated_read', journal_update: 'advertised_not_invoked', journal_mark_read: 'advertised_app_only_not_invoked',
+      journal_read: 'passed_empty_isolated_read', journal_tracking: 'advertised_not_invoked', journal_update: 'advertised_not_invoked', journal_mark_read: 'advertised_app_only_not_invoked',
       ui_resource: { uri: resourceUri, mime_type: html.mimeType, status: 'served' } };
   } finally { await client.close(); }
 }

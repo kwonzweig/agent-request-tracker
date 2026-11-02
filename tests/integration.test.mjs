@@ -33,12 +33,13 @@ test('MCP saves, reloads after server restart, rejects stale writes, and serves 
   let client=await connect();
   try {
     const tools=await client.listTools();
-    assert.deepEqual(tools.tools.map(t=>t.name).sort(),['journal_mark_read','journal_read','journal_show','journal_update']);
+    assert.deepEqual(tools.tools.map(t=>t.name).sort(),['journal_mark_read','journal_read','journal_show','journal_tracking','journal_update']);
     assert.equal(tools.tools.find(t=>t.name==='journal_read')._meta?.ui,undefined);
     assert.deepEqual(tools.tools.find(t=>t.name==='journal_update')._meta.ui,{visibility:['model']});
     assert.deepEqual(tools.tools.find(t=>t.name==='journal_mark_read')._meta.ui,{visibility:['app']});
     for (const name of ['journal_read','journal_update','journal_mark_read']) assert.equal(tools.tools.find(t=>t.name===name)._meta?.['ui/resourceUri'],undefined);
     assert.equal(tools.tools.find(t=>t.name==='journal_show')._meta.ui.resourceUri,'ui://request-journal/tracker.html');
+    await client.callTool({name:'journal_tracking',arguments:{conversation_id:'integration',enabled:true}});
     const saved=await client.callTool({name:'journal_update',arguments:{conversation_id:'integration',...checkpoint}});
     assert.equal(saved.isError,undefined); assert.equal(saved.structuredContent.journal.revision,1);
     const shown=await client.callTool({name:'journal_show',arguments:{conversation_id:'integration'}});

@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { evaluateStop, readJournal, updateJournal } from '../src/store.mjs';
+import { recordPresentation } from '../src/presentation.mjs';
 import { evaluateStopAssessment } from '../src/completion.mjs';
 import { view } from './ui-harness.mjs';
 import { legacyDoneFixture } from './legacy-done-fixture.mjs';
@@ -144,6 +145,7 @@ test('the saved Later blocker produces matching UI and Stop-hook completion chec
   assert.equal(ui.document.querySelector('#jc-goal-status').textContent, 'Done');
   assert.equal(ui.document.querySelector('#jc-agent-status').textContent, 'Done');
   assert.equal(evaluateStop(verified, { turnId: 'T3' }).allowed, true);
+  await recordPresentation(dir, verified);
   assert.deepEqual(await stopHook(dir, 'T3'), {});
 });
 

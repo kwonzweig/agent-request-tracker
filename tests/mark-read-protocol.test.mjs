@@ -20,6 +20,7 @@ test('MCP exposes only the narrow app-only read operation and returns the saved 
     assert.equal(tool.annotations.idempotentHint, true);
     assert.deepEqual(listed.tools.find(tool => tool.name === 'journal_update')._meta.ui.visibility, ['model']);
     const turn = { id: 'T1', source: 'user:actual-1', summary: 'Saved result', end_reason: 'answer_delivered' };
+    await client.callTool({ name: 'journal_tracking', arguments: { conversation_id: 'c', enabled: true } });
     const initial = await client.callTool({ name: 'journal_update', arguments: { conversation_id: 'c', expected_revision: 0, turn,
       upsert: { requests: [{ id: 'R1', title: 'Requested output', done_when: 'Verified output', status: 'active', source: turn.source }],
         cards: [{ id: 'Q1', request_id: 'R1', revision: 1, type: 'qa', title: 'Answer', body: 'Original answer', source: 'agent:1', status: 'open' }] } } });

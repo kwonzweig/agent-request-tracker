@@ -1,11 +1,13 @@
 ---
 name: request-journal
-description: Maintain a user's persistent request journal when the conversation has opted in to Request Tracker. Reload requests and decisions before work; save concise changes and display the tracker before a legitimate final response.
+description: Use when the user turns Request Tracker on or off for this conversation, or a Request Tracker hook reports that tracking is active.
 ---
 
 # Request Tracker
 
-Use only for a conversation explicitly enrolled in Request Tracker. Other conversations remain unaffected.
+New conversations default OFF. When the user asks to enable Request Tracker, call `journal_tracking` with the actual `conversation_id` and `enabled: true`, then follow the workflow below. ON persists across turns and restarts until the user asks to turn it OFF; do not ask again each turn. A capability question or quoted example alone is not an activation request.
+
+When the user asks to turn tracking OFF, call `journal_tracking` with `enabled: false` and confirm briefly in ordinary chat. Do not update or show the tracker afterward. This preserves existing records and affects only this conversation. Re-enabling resumes the saved journal; it does not renew expired permissions or restart work the user stopped. `journal_read` reports `tracking_enabled`; if false, follow ordinary chat behavior unless the user explicitly requests ON.
 
 Keep the human's original outcome and explicit permissions separate from your proposals and assumptions.
 

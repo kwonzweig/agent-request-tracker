@@ -40,11 +40,13 @@ The product is Request Tracker. Its plugin ID and storage names remain `request-
 
 Open a conversation and ask:
 
-> Use Request Tracker in this conversation. Track my requests and unresolved choices.
+> Turn Request Tracker on in this conversation.
+
+New conversations default OFF. ON remains saved for this conversation until you say “Turn Request Tracker off.” OFF preserves the journal; turning it on again resumes the existing records. You do not need to repeat the instruction each turn.
 
 Confirm that the tracker opens. Submit a harmless comment and check that it reaches the same conversation. Then try **Mark as read** on a Q&A, Note or Complete card; it should save without sending a message. See the [guide](guide.md) for the remaining actions.
 
-Review the plugin's hooks in the host's supported controls before enabling them. They reload saved context and check the agent's stated reason for stopping. They cannot verify that work happened or guarantee unattended continuation.
+Review the plugin's hooks in the host's supported controls before enabling them. In ON conversations they reload saved context and check the saved turn and its display request before the agent finishes. A missing update or display request can trigger one corrective continuation. Hooks do nothing while OFF. They cannot verify that work happened, that the host rendered the widget, or guarantee unattended continuation.
 
 ## Update or remove
 

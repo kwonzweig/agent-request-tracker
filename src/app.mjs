@@ -5,7 +5,7 @@ import { workspaceGroups, turnChanges, attentionState, needsAttention, attention
 import { formatReplyText } from './reply-text.mjs';
 import { evaluateCompletion, evaluateStopAssessment } from './completion.mjs';
 
-const app = new App({ name: 'Request Tracker', version: '0.6.1' });
+const app = new App({ name: 'Request Tracker', version: '0.6.2' });
 const extensions = new OpenAIExtensions(app);
 const $ = id => document.getElementById(id);
 const root = $('rjc');

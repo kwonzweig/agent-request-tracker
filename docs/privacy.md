@@ -9,7 +9,7 @@ Request Tracker saves the requests, choices and other records the agent writes f
 | Host webview storage | Unsent drafts and reply-delivery state. |
 | Current AI conversation | Tool results and replies you submit. |
 
-The default journal directory is `~/.request-journal/journals`. Set `REQUEST_JOURNAL_DATA_DIR` in the plugin process environment to choose another location.
+New installations use `~/.request-tracker/journals`. Set `REQUEST_TRACKER_DATA_DIR` in the plugin process environment to choose another location. Upgraded installations can retain their existing data location; see [upgrade instructions](install.md#upgrade-from-the-older-plugin-id).
 
 Journal files are ordinary JSON, without application-level encryption. Access depends on your operating system and account permissions. Keep passwords, tokens and other secrets out of entries.
 
@@ -19,7 +19,7 @@ Request Tracker has no separate account, model API service or telemetry service.
 
 Removing the plugin leaves journals in place. Back up or delete the journal directory separately when you no longer want the records. Removing journal files does not clear webview drafts or delivery state; use your host's storage controls for those. There is no combined delete-all-data command.
 
-Say “Turn Request Tracker off in this conversation.” The agent saves OFF through `journal_tracking`; the journal stays in place, and tracking hooks stop for that conversation. Turning it ON again resumes the saved records. Other conversations are unaffected. Existing journals from versions before the switch remain ON until explicitly turned OFF. Disabling the plugin itself still affects every conversation using it.
+Use `$request-tracker off` in the conversation. The agent saves OFF through `journal_tracking`; records stay in place, and tracking hooks stop for that conversation. `$request-tracker on` resumes the saved records. Other conversations are unaffected. Journals created before per-conversation ON/OFF settings remain ON until explicitly turned OFF. Disabling the plugin itself still affects every conversation using it.
 
 ## Local demo
 

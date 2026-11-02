@@ -1,3 +1,4 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import assert from 'node:assert/strict';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
@@ -222,7 +223,7 @@ test('draft actions replace one another while comments coexist; stale actions ne
 test('drafts and reply text support current deferred choices, action labels, and safe display', () => {
   assert.equal(hasChoices('decisions', decision({ status: 'deferred' })), true);
   const saved = storage();
-  saved.setItem('request-journal:replies:v1:c', JSON.stringify({ version: 1, delivery: null,
+  saved.setItem(`${replyStoragePrefix}c`, JSON.stringify({ version: 1, delivery: null,
     drafts: [{ collection: 'blockers', id: 'B1', record_revision: 1, kind: 'acknowledge', token: 'ack' }] }));
   const restored = new ReplyDrafts(saved, 'c');
   assert.equal(restored.storageAvailable, true);

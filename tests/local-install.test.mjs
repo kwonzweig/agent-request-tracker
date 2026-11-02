@@ -1,3 +1,4 @@
+import { uiResourceUri } from '../src/compatibility.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, rm, writeFile, access } from 'node:fs/promises';
@@ -9,7 +10,7 @@ test('installation summary keeps only Request Tracker facts from CLI JSON', asyn
   const { summarizePluginList } = await import('../scripts/check-local-install.mjs');
   const summary = summarizePluginList({ installed: [
     { name: 'other-plugin', version: '9', enabled: true, secret: 'do not display' },
-    { name: 'request-journal', marketplaceName: 'request-journal-local', pluginId: 'request-journal@request-journal-local', installed: true, enabled: true, version: '0.1.0', unrelated: 'do not display' },
+    { name: 'request-tracker', marketplaceName: 'request-tracker-local', pluginId: 'request-tracker@request-tracker-local', installed: true, enabled: true, version: '0.1.0', unrelated: 'do not display' },
   ] });
   assert.deepEqual(summary, { installed: true, enabled: true, version: '0.1.0' });
   assert.deepEqual(summarizePluginList({ installed: [] }), { installed: false, enabled: false, version: null });
@@ -73,8 +74,8 @@ test('packaged MCP preflight advertises writes but performs only reads and does 
 for (const [label, mutate, code] of [
   ['model-visible read mutation', tools => { tools.find(tool => tool.name === 'journal_mark_read')._meta.ui.visibility = ['model', 'app']; }, 'MCP_TOOL_VISIBILITY_MISMATCH'],
   ['app-visible generic update', tools => { tools.find(tool => tool.name === 'journal_update')._meta.ui.visibility = ['model', 'app']; }, 'MCP_TOOL_VISIBILITY_MISMATCH'],
-  ['read mutation mounting a resource', tools => { tools.find(tool => tool.name === 'journal_mark_read')._meta.ui.resourceUri = 'ui://request-journal/tracker.html'; }, 'MCP_UI_BINDING_MISMATCH'],
-  ['legacy resource mount on read mutation', tools => { tools.find(tool => tool.name === 'journal_mark_read')._meta['ui/resourceUri'] = 'ui://request-journal/tracker.html'; }, 'MCP_UI_BINDING_MISMATCH'],
+  ['read mutation mounting a resource', tools => { tools.find(tool => tool.name === 'journal_mark_read')._meta.ui.resourceUri = uiResourceUri; }, 'MCP_UI_BINDING_MISMATCH'],
+  ['legacy resource mount on read mutation', tools => { tools.find(tool => tool.name === 'journal_mark_read')._meta['ui/resourceUri'] = uiResourceUri; }, 'MCP_UI_BINDING_MISMATCH'],
   ['lost show resource binding', tools => { tools.find(tool => tool.name === 'journal_show')._meta.ui.resourceUri = 'ui://other/view.html'; }, 'MCP_UI_BINDING_MISMATCH'],
   ['broad read mutation input', tools => { tools.find(tool => tool.name === 'journal_mark_read').inputSchema.properties.upsert = { type: 'object' }; }, 'MCP_READ_MUTATION_SCHEMA_MISMATCH'],
 ]) test(`packaged preflight rejects ${label}`, async t => {

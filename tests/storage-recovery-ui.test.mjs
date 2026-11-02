@@ -1,3 +1,4 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ReplyDrafts, draftKey } from '../src/reply-ui.mjs';
@@ -105,9 +106,9 @@ test('successful reads do not conceal an unresolved write failure', () => {
 
 for (const corrupt of ['base JSON', 'operation JSON', 'delivery shape']) test(`malformed ${corrupt} remains locked without altering drafts`, async () => {
   const storage = pending();
-  if (corrupt === 'base JSON') storage.setItem('request-journal:replies:v1:C1', '{');
+  if (corrupt === 'base JSON') storage.setItem(`${replyStoragePrefix}C1`, '{');
   else if (corrupt === 'operation JSON') storage.setItem([...storage.values.keys()].find(key => key.includes(':item:')), '{');
-  else storage.setItem('request-journal:replies:v1:C1:delivery', JSON.stringify({ id: 'pending-delivery', conversation_id: 'C1', items: [comment], tokens: [] }));
+  else storage.setItem(`${replyStoragePrefix}C1:delivery`, JSON.stringify({ id: 'pending-delivery', conversation_id: 'C1', items: [comment], tokens: [] }));
   const before = [...storage.values], ui = await view({ storage }); ui.show(received());
   await ui.refresh(received());
   assert.equal(q(ui, '#jc-storage').hidden, false);

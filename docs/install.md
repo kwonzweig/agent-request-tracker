@@ -30,19 +30,19 @@ cd agent-request-tracker
 npm ci --ignore-scripts
 npm run check
 codex plugin marketplace add .
-codex plugin add request-journal@request-journal-local
+codex plugin add request-tracker@request-tracker-local
 node scripts/check-local-install.mjs
 ```
 
 The build bundles the runtime dependencies into `plugin/`. Codex registers this checkout as a local marketplace and caches the plugin. Keep the checkout available for rebuilding and updates.
 
-The product is Request Tracker. Its plugin ID and storage names remain `request-journal` for compatibility with existing installations.
+Open a conversation and invoke the skill:
 
-Open a conversation and ask:
+```text
+$request-tracker on
+```
 
-> Turn Request Tracker on in this conversation.
-
-New conversations default OFF. ON remains saved for this conversation until you say “Turn Request Tracker off.” OFF preserves the journal; turning it on again resumes the existing records. You do not need to repeat the instruction each turn.
+New conversations default OFF. ON remains saved for this conversation until you use `$request-tracker off`. OFF preserves your records; `$request-tracker on` resumes them. Natural-language ON/OFF requests also work. You do not need to repeat the instruction each turn.
 
 Confirm that the tracker opens. Submit a harmless comment and check that it reaches the same conversation. Then try **Mark as read** on a Q&A, Note or Complete card; it should save without sending a message. See the [guide](guide.md) for the remaining actions.
 
@@ -56,7 +56,7 @@ From your checkout:
 git pull --ff-only
 npm ci --ignore-scripts
 npm run check
-codex plugin add request-journal@request-journal-local
+codex plugin add request-tracker@request-tracker-local
 node scripts/check-local-install.mjs
 ```
 
@@ -65,10 +65,26 @@ Repeated `plugin add` refreshes the local cache in the checked CLI. Confirm the 
 To remove the plugin:
 
 ```sh
-codex plugin remove request-journal@request-journal-local
+codex plugin remove request-tracker@request-tracker-local
 ```
 
 Removal preserves saved data. See [privacy and data removal](privacy.md).
+
+## Upgrade from the older plugin ID
+
+If your installation uses `request-journal@request-journal-local`, finish active tracker work, update and build this checkout, then replace the old registration:
+
+```sh
+codex plugin remove request-journal@request-journal-local
+codex plugin marketplace remove request-journal-local
+codex plugin marketplace add .
+codex plugin add request-tracker@request-tracker-local
+node scripts/check-local-install.mjs
+```
+
+Saved data is preserved. The runtime reuses `~/.request-journal/journals` when it exists and `~/.request-tracker/journals` does not; it does not move live data. New installations use `~/.request-tracker/journals`. If both default directories exist, even if empty, select the intended directory with `REQUEST_TRACKER_DATA_DIR` before restarting instead of merging them automatically. Existing custom data overrides remain supported.
+
+Reload the host after replacing the registration. The skill is now `$request-tracker`; use `$request-tracker on` or `$request-tracker off` in the conversation. A cache refresh alone does not establish that an already running host loaded the new skill.
 
 ## Check an isolated installation
 
@@ -82,7 +98,7 @@ try {
     $env:CODEX_HOME = $trialCodexHome
     codex plugin marketplace add .
     if ($LASTEXITCODE -ne 0) { throw "Marketplace registration failed" }
-    codex plugin add request-journal@request-journal-local
+    codex plugin add request-tracker@request-tracker-local
     if ($LASTEXITCODE -ne 0) { throw "Plugin installation failed" }
     node scripts/check-local-install.mjs
     if ($LASTEXITCODE -ne 0) { throw "Installation check failed" }

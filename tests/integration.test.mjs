@@ -1,3 +1,4 @@
+import { uiResourceUri } from '../src/compatibility.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -16,7 +17,7 @@ async function temp(t) {
 }
 async function hook(dir,event) {
   return await new Promise((resolveResult,reject)=>{
-    const child=spawn(process.execPath,['plugin/dist/hook.mjs'],{env:{...process.env,REQUEST_JOURNAL_DATA_DIR:dir},stdio:['pipe','pipe','pipe']});
+    const child=spawn(process.execPath,['plugin/dist/hook.mjs'],{env:{...process.env,REQUEST_TRACKER_DATA_DIR:dir},stdio:['pipe','pipe','pipe']});
     let out='',err=''; child.stdout.on('data',d=>out+=d); child.stderr.on('data',d=>err+=d);
     child.on('error',reject); child.on('close',code=>code===0?resolveResult(out?JSON.parse(out):null):reject(new Error(err)));
     child.stdin.end(JSON.stringify(event));
@@ -26,8 +27,8 @@ async function hook(dir,event) {
 test('MCP saves, reloads after server restart, rejects stale writes, and serves app HTML',async t=>{
   const dir=await temp(t);
   async function connect() {
-    const client=new Client({name:'request-journal-test',version:'1.0.0'});
-    await client.connect(new StdioClientTransport({command:process.execPath,args:[resolve('plugin/dist/server.mjs')],env:{...process.env,REQUEST_JOURNAL_DATA_DIR:dir},stderr:'pipe'}));
+    const client=new Client({name:'request-tracker-test',version:'1.0.0'});
+    await client.connect(new StdioClientTransport({command:process.execPath,args:[resolve('plugin/dist/server.mjs')],env:{...process.env,REQUEST_TRACKER_DATA_DIR:dir},stderr:'pipe'}));
     return client;
   }
   let client=await connect();
@@ -38,7 +39,7 @@ test('MCP saves, reloads after server restart, rejects stale writes, and serves 
     assert.deepEqual(tools.tools.find(t=>t.name==='journal_update')._meta.ui,{visibility:['model']});
     assert.deepEqual(tools.tools.find(t=>t.name==='journal_mark_read')._meta.ui,{visibility:['app']});
     for (const name of ['journal_read','journal_update','journal_mark_read']) assert.equal(tools.tools.find(t=>t.name===name)._meta?.['ui/resourceUri'],undefined);
-    assert.equal(tools.tools.find(t=>t.name==='journal_show')._meta.ui.resourceUri,'ui://request-journal/tracker.html');
+    assert.equal(tools.tools.find(t=>t.name==='journal_show')._meta.ui.resourceUri,uiResourceUri);
     await client.callTool({name:'journal_tracking',arguments:{conversation_id:'integration',enabled:true}});
     const saved=await client.callTool({name:'journal_update',arguments:{conversation_id:'integration',...checkpoint}});
     assert.equal(saved.isError,undefined); assert.equal(saved.structuredContent.journal.revision,1);
@@ -46,7 +47,7 @@ test('MCP saves, reloads after server restart, rejects stale writes, and serves 
     assert.deepEqual(shown.structuredContent.journal,saved.structuredContent.journal);
     const stale=await client.callTool({name:'journal_update',arguments:{conversation_id:'integration',...checkpoint}});
     assert.equal(stale.isError,true);
-    const html=await client.readResource({uri:'ui://request-journal/tracker.html'});
+    const html=await client.readResource({uri:uiResourceUri});
     assert.equal(html.contents[0].mimeType,'text/html;profile=mcp-app');
     assert.match(html.contents[0].text,/Request Tracker/);
     assert.doesNotMatch(html.contents[0].text,/JOURNAL_SCRIPT/);

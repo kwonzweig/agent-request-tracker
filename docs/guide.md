@@ -1,6 +1,6 @@
 # Using Request Tracker
 
-Ask Codex to use Request Tracker in the current conversation, then describe the outcome you want. The agent records the request, its completion conditions and any choices or obstacles that arise. Continue speaking normally; you do not need to maintain the records yourself.
+Use `$request-tracker on` in the current conversation, then describe the outcome you want. The agent records the request, its completion conditions and any choices or obstacles that arise. Continue speaking normally; you do not need to maintain the records yourself. `$request-tracker off` stops tracking in this conversation and preserves the saved records.
 
 ## The four tabs
 

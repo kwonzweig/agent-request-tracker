@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { promises as fs } from 'node:fs';
 import { evaluateStop, readJournal, updateJournal, validateJournal } from './store.mjs';
+import { legacyDataEnvironment } from './compatibility.mjs';
+
+const configuredDataDir = process.env.REQUEST_TRACKER_DATA_DIR || process.env[legacyDataEnvironment];
 
 function usage() {
   throw new Error('usage: node src/cli.mjs <read|update|validate> --conversation ID [--data-dir DIR] [--input PATH for update] [--turn ID for validate]');
@@ -16,11 +19,11 @@ function parse(argv) {
     if (!['--conversation', '--data-dir', '--input', '--turn'].includes(flag) || !value || value.startsWith('--') || options[flag]) usage();
     options[flag] = value;
   }
-  if (!options['--conversation'] || !options['--data-dir'] && !process.env.REQUEST_JOURNAL_DATA_DIR) usage();
+  if (!options['--conversation'] || !options['--data-dir'] && !configuredDataDir) usage();
   if (command === 'update' && !options['--input']) usage();
   if (command !== 'update' && options['--input']) usage();
   if (command !== 'validate' && options['--turn']) usage();
-  return { command, conversationId: options['--conversation'], dataDir: options['--data-dir'] ?? process.env.REQUEST_JOURNAL_DATA_DIR, input: options['--input'], turnId: options['--turn'] };
+  return { command, conversationId: options['--conversation'], dataDir: options['--data-dir'] ?? configuredDataDir, input: options['--input'], turnId: options['--turn'] };
 }
 
 async function main() {

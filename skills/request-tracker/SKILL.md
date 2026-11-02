@@ -1,11 +1,11 @@
 ---
-name: request-journal
+name: request-tracker
 description: Use when the user turns Request Tracker on or off for this conversation, or a Request Tracker hook reports that tracking is active.
 ---
 
 # Request Tracker
 
-New conversations default OFF. When the user asks to enable Request Tracker, call `journal_tracking` with the actual `conversation_id` and `enabled: true`, then follow the workflow below. ON persists across turns and restarts until the user asks to turn it OFF; do not ask again each turn. A capability question or quoted example alone is not an activation request.
+Handle `$request-tracker on` and `$request-tracker off` as explicit requests to enable or disable tracking in the current conversation. Natural-language ON/OFF requests follow the same rules. New conversations default OFF. When the user asks to enable Request Tracker, call `journal_tracking` with the actual `conversation_id` and `enabled: true`, then follow the workflow below. ON persists across turns and restarts until the user asks to turn it OFF; do not ask again each turn. A capability question or quoted example alone is not an activation request.
 
 When the user asks to turn tracking OFF, call `journal_tracking` with `enabled: false` and confirm briefly in ordinary chat. Do not update or show the tracker afterward. This preserves existing records and affects only this conversation. Re-enabling resumes the saved journal; it does not renew expired permissions or restart work the user stopped. `journal_read` reports `tracking_enabled`; if false, follow ordinary chat behavior unless the user explicitly requests ON.
 
@@ -61,7 +61,7 @@ An explicit human answer remains User-authored even when the agent saves it. Age
 
 Only the agent resolves a Blocker, after verifying the affected operation. "I signed in" reports an action; a successful access check establishes the result. Cite that verification in Agent `resolution` and bind `resolution.record_revision` to the blocker version you checked (its latest journal record-change revision). If the condition changed during verification, recheck it. If the check fails, keep the same blocker open with the observed failure and next action. An Alternative authorizes only that option; if it makes the original blocked step unnecessary, record a sourced Dismissed outcome rather than claiming a fix. Otherwise retain the obstacle. Older Blocker Resolve receipts remain historical reports, never verification or a reason to offer that action again. Q&A, Note and Complete resolution requires attributable acknowledgment, which may be a clear comment. Becoming irrelevant instead supports Dismissed, not a claim that the user understood.
 
-Keep useful Background, Impact and Next action in named fields without duplicating the main explanation. Cards have no nested Details, Responsible, Source or Record display. Preserve provenance and IDs in the data. Use Request `workspace` for the primary work item and optional `urls: [{label,url}]` for other useful destinations. Cards inherit the linked Request's nearest workspace; explicit null stops inheritance. Links do not grant authority.
+Use Decision `why` and option `impact`, Blocker `evidence` and `next_action`, and Card `body` for explanations. Avoid repeating the same explanation across those fields. Cards have no nested Details, Responsible, Source or Record display. Preserve provenance and IDs in the data. Use Request `workspace` for the primary work item and optional `urls: [{label,url}]` for other useful destinations. Cards inherit the linked Request's nearest workspace; explicit null stops inheritance. Links do not grant authority.
 
 For a Request Tracker reply, read the accompanying JSON resource and the actual received human message together. Check its conversation and delivery ID, and each item's original record revision against journal history. Set optional `input_method: card` only for an actual card reply, or `chat` for an ordinary message recorded in context; omit it when unknown. The MCP writer stamps `recorded_at` when it stores a new receipt, not when the user acted. Do not invent or backfill old timestamps. Commit the immutable `replies` receipt using that actual message as its source; record semantic answers only after checking that the choice is still current and open. An already committed delivery must not execute twice. Preserve historical comments without applying them to a newer choice. If the payload is missing, stale, or conflicts with the prose, do not invent its bindings or claim the reply was saved. Reconcile it with the user when necessary. UI drafts and delivery acknowledgements are not user-answer evidence.
 
@@ -75,4 +75,4 @@ Internal AI-to-AI messages do not generate human turns. A proposal from another 
 
 Use a web widget or HTML explanation when a diagram or before/after comparison clarifies a decision. Reference the same decision and revision. This is additional communication, not the persistent tracker or proof of an answer.
 
-The first usable version requires a connected deterministic writer and renderer. This instruction file alone does not implement them. If missing, report that limitation instead of claiming Markdown achieves automatic persistent tracking. Preserve user stops during hook or recovery handling. This skill does not authorize new tools or paid inference.
+Persistent tracking requires the connected MCP writer and renderer. If either is unavailable, report that limitation instead of claiming the skill or Markdown alone implements tracking. Preserve user stops during hook or recovery handling. This skill does not authorize new tools or paid inference.

@@ -41,7 +41,7 @@ const finish = (dir, end_reason = 'complete') => legacyDoneFixture(dir, 'complet
 async function stopHook(dir, turnId) {
   return new Promise((resolveResult, reject) => {
     const child = spawn(process.execPath, ['src/hook.mjs'], {
-      env: { ...process.env, REQUEST_JOURNAL_DATA_DIR: dir }, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
+      env: { ...process.env, REQUEST_TRACKER_DATA_DIR: dir }, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true,
     });
     let stdout = '', stderr = '';
     child.stdout.on('data', value => stdout += value);

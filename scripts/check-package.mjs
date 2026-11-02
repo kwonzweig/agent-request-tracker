@@ -58,11 +58,11 @@ export async function validatePackage(repositoryRoot = resolve('.')) {
   const compatibilityMcp = await json(await packagePath(plugin, compatibility.mcpServers));
   requireCheck(isDeepStrictEqual(compatibilityMcp, { mcpServers: Object.fromEntries(Object.entries(mcp.mcpServers).map(([name, { type, ...settings }]) => [name, settings])) }), 'PACKAGE_COMPATIBILITY_MCP_MISMATCH');
   await packagePath(plugin, compatibility.skills, true);
-  for (const path of ['dist/server.mjs', 'dist/hook.mjs', 'dist/cli.mjs', 'dist/journal.html', 'skills/request-journal/SKILL.md', 'schema/journal.schema.json', 'LICENSE', 'THIRD_PARTY_NOTICES.txt']) {
+  for (const path of ['dist/server.mjs', 'dist/hook.mjs', 'dist/cli.mjs', 'dist/journal.html', 'skills/request-tracker/SKILL.md', 'schema/journal.schema.json', 'LICENSE', 'THIRD_PARTY_NOTICES.txt']) {
     await packagePath(plugin, `./${path}`);
   }
   requireCheck((await readFile(join(root, 'LICENSE'))).equals(await readFile(join(plugin, 'LICENSE'))), 'PACKAGE_PROJECT_LICENSE_MISMATCH');
-  for (const path of ['skills/request-journal/SKILL.md', 'schema/journal.schema.json']) {
+  for (const path of ['skills/request-tracker/SKILL.md', 'schema/journal.schema.json']) {
     requireCheck((await readFile(join(root, path))).equals(await readFile(join(plugin, path))), 'PACKAGE_BUNDLED_SOURCE_MISMATCH');
   }
   const server = await readFile(join(root, 'src/server.mjs'), 'utf8');

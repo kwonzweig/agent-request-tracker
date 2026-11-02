@@ -10,7 +10,7 @@ test('source MCP advertises cards and receipts and accepts a receipt with its se
   const dir = await mkdtemp(join(tmpdir(), 'journal-protocol-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const client = new Client({ name: 'journal-protocol-test', version: '1.0.0' });
-  await client.connect(new StdioClientTransport({ command: process.execPath, args: [resolve('src/server.mjs')], env: { ...process.env, REQUEST_JOURNAL_DATA_DIR: dir }, stderr: 'pipe' }));
+  await client.connect(new StdioClientTransport({ command: process.execPath, args: [resolve('src/server.mjs')], env: { ...process.env, REQUEST_TRACKER_DATA_DIR: dir }, stderr: 'pipe' }));
   try {
     const tools = await client.listTools();
     const update = tools.tools.find(tool => tool.name === 'journal_update');

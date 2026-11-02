@@ -1,3 +1,4 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { view, previewState, commit, tick, memoryStorage } from './ui-harness.mjs';
@@ -27,7 +28,7 @@ const cases = [
 
 for (const scenario of cases) test(`${scenario.name} stays in Cards and allows an unrelated reply`, async () => {
   const storage = memoryStorage(), first = previewState();
-  if (scenario.legacy || scenario.saved) storage.setItem('request-journal:replies:v1:C1', JSON.stringify({ version: 1, delivery: null,
+  if (scenario.legacy || scenario.saved) storage.setItem(`${replyStoragePrefix}C1`, JSON.stringify({ version: 1, delivery: null,
     drafts: [{ collection: scenario.collection, id: scenario.id, record_revision: 3, kind: scenario.action, token: 'legacy-action' }] }));
   const ui = await view({ storage }); ui.show(first);
   const control = scenario.choice ? `[data-choice="${scenario.choice}"][data-record="${scenario.id}"]`

@@ -1,3 +1,4 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import assert from 'node:assert/strict';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
@@ -360,7 +361,7 @@ test('legacy resolve drafts survive lost delivery without becoming sendable; old
   const journal = await readJournal(dir, 'c');
   const values = new Map(), storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
   const item = { collection: 'blockers', id: 'B1', record_revision: 1, kind: 'resolve' };
-  storage.setItem('request-journal:replies:v1:c', JSON.stringify({ version: 1,
+  storage.setItem(`${replyStoragePrefix}c`, JSON.stringify({ version: 1,
     drafts: [{ ...item, token: 'token' }], delivery: { id: 'delivery', conversation_id: 'c',
       items: [item], tokens: ['token'], status: 'sending' } }));
   const drafts = new ReplyDrafts(storage, 'c');

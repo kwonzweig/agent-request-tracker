@@ -1,10 +1,11 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { view, previewState, commit, memoryStorage, tick } from './ui-harness.mjs';
 import { ReplyDrafts, recordRevision } from '../src/reply-ui.mjs';
 
 const q = (ui, selector) => ui.document.querySelector(selector);
-const deliveryKey = 'request-journal:replies:v1:C1:delivery';
+const deliveryKey = `${replyStoragePrefix}C1:delivery`;
 function deferred() { let resolve, reject; const promise = new Promise((ok, fail) => { resolve = ok; reject = fail; }); return { promise, resolve, reject }; }
 const receipt = (journal, envelope, patch = {}) => commit(journal, { replies: [{ id: envelope.delivery_id, source: 'user:4',
   items: envelope.items.map(item => ({ ...item, ...patch, outcome: 'accepted' })) }] });
@@ -57,7 +58,7 @@ test('settlement of an old delivery notice imports shared choices before drawing
   // Schedule a real other-view edit at the origin settlement lookup, after
   // the journal reconciliation's first draft read. Its ordering must not hide it.
   a.storage.getItem = key => {
-    if (key === 'request-journal:replies:v1:C1' && ++baseReads === 2)
+    if (key === `${replyStoragePrefix}C1` && ++baseReads === 2)
       q(b, '#jc-attention [data-record="S1"] [data-choice="decline"]').click();
     return read(key);
   };

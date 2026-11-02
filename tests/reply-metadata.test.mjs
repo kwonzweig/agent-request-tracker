@@ -26,7 +26,7 @@ async function setup(t) {
 async function connect(t, dir) {
   const client = new Client({ name: 'reply-metadata-test', version: '1.0.0' });
   await client.connect(new StdioClientTransport({ command: process.execPath, args: [path.resolve('src/server.mjs')],
-    env: { ...process.env, REQUEST_JOURNAL_DATA_DIR: dir }, stderr: 'pipe' }));
+    env: { ...process.env, REQUEST_TRACKER_DATA_DIR: dir }, stderr: 'pipe' }));
   t.after(() => client.close());
   return client;
 }

@@ -1,3 +1,4 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ReplyDrafts, draftKey } from '../src/reply-ui.mjs';
@@ -310,7 +311,7 @@ test('legacy pending delivery retries with the same ID, original versions and to
   const storage = memoryStorage();
   const legacyItems = [{ collection: 'blockers', id: 'B1', record_revision: 1, kind: 'resolve' }, items[1]];
   const delivery = { id: 'legacy-delivery', conversation_id: 'C1', items: legacyItems, tokens: ['legacy-action', 'legacy-comment'], status: 'sending' };
-  storage.setItem('request-journal:replies:v1:C1', JSON.stringify({ version: 1,
+  storage.setItem(`${replyStoragePrefix}C1`, JSON.stringify({ version: 1,
     drafts: legacyItems.map((item, index) => ({ ...item, token: delivery.tokens[index] })), delivery }));
   const drafts = reopen(storage), sent = [], frozen = storage.getItem(drafts.key), review = drafts.pendingReview();
   assert.equal(review.generation, 0);

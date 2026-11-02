@@ -1,3 +1,4 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import assert from 'node:assert/strict';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
@@ -81,7 +82,7 @@ test('a truly overlapping delete cannot overwrite a newer same-item edit', () =>
   assert.equal(c.drafts.get(draftKey(comment())).text, 'Concurrent edit');
 });
 test('legacy pending delivery remains readable and locked without constructor writes', () => {
-  const saved = storage(), key = 'request-journal:replies:v1:c';
+  const saved = storage(), key = `${replyStoragePrefix}c`;
   const delivery = { id: 'legacy', conversation_id: 'c', items: [comment()], tokens: ['old'], status: 'sending' };
   saved.setItem(key, JSON.stringify({ version: 1, drafts: [{ ...comment(), token: 'old' }], delivery }));
   const before = saved.getItem(key), a = new ReplyDrafts(saved, 'c');
@@ -385,7 +386,7 @@ for (const otherText of [false, true]) test(`writer-committed answer preserves v
   assert.equal(ui.sent.length, 0);
 });
 test('legacy saved delivery token cleanup remains readable and consumes only its matching draft', () => {
-  const saved = storage(), key = 'request-journal:replies:v1:C1';
+  const saved = storage(), key = `${replyStoragePrefix}C1`;
   const answer = { collection: 'decisions', id: 'D1', record_revision: 1, kind: 'answer', option_id: 'A' };
   saved.setItem(key, JSON.stringify({ version: 1, drafts: [{ ...answer, token: 'legacy' }],
     delivery: { id: 'legacy-send', conversation_id: 'C1', items: [answer], tokens: ['legacy'], status: 'uncertain' } }));

@@ -15,7 +15,7 @@ async function fixture(t) {
   async function connect() {
     const client = new Client({ name: 'activation-test', version: '1' });
     await client.connect(new StdioClientTransport({ command: process.execPath,
-      args: [resolve('src/server.mjs')], env: { ...process.env, REQUEST_JOURNAL_DATA_DIR: dir }, stderr: 'pipe' }));
+      args: [resolve('src/server.mjs')], env: { ...process.env, REQUEST_TRACKER_DATA_DIR: dir }, stderr: 'pipe' }));
     clients.push(client);
     return client;
   }
@@ -25,7 +25,7 @@ const call = (client, name, args = {}) => client.callTool({ name, arguments: { c
 const update = { expected_revision: 0, turn: { id: 'turn-1', source: 'user:1', summary: 'Answer delivered', end_reason: 'complete' }, upsert: {} };
 async function hook(dir, event) {
   return new Promise((resolveResult, reject) => {
-    const child = spawn(process.execPath, ['src/hook.mjs'], { env: { ...process.env, REQUEST_JOURNAL_DATA_DIR: dir }, windowsHide: true });
+    const child = spawn(process.execPath, ['src/hook.mjs'], { env: { ...process.env, REQUEST_TRACKER_DATA_DIR: dir }, windowsHide: true });
     let out = '', err = '';
     child.stdout.on('data', d => out += d); child.stderr.on('data', d => err += d);
     child.on('error', reject);

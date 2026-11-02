@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { updateJournal } from '../src/store.mjs';
 
 export async function demoFixtures() {
-  const dir = await mkdtemp(join(tmpdir(), 'request-journal-demo-'));
+  const dir = await mkdtemp(join(tmpdir(), 'request-tracker-demo-'));
   const conversation = 'fictional-weekly-digest';
   let revision = 0;
   async function save(id, summary, upsert, end_reason = null) {

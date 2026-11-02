@@ -1,4 +1,4 @@
-# Agent Request Tracker
+# Request Tracker
 
 Request Tracker is a stateful Codex plugin that keeps requests and decisions visible as a conversation grows. See what is unfinished, answer the choices that need you, and find what you already agreed to without rereading the chat.
 
@@ -14,13 +14,17 @@ Codex is supported. [Claude Code support](adapters/claude-code/README.md) is pla
 
 ## Use
 
-In a conversation, ask:
+In a conversation, invoke the skill:
 
-> Turn Request Tracker on in this conversation.
+```text
+$request-tracker on
+```
 
-New conversations start OFF. Once ON, tracking stays on across turns and restarts until you say:
+New conversations start OFF. Once ON, tracking stays on across turns and restarts until you use:
 
-> Turn Request Tracker off in this conversation.
+```text
+$request-tracker off
+```
 
 OFF keeps your records. Turn it on again to resume; other conversations are unaffected.
 

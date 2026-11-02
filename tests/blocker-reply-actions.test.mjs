@@ -1,3 +1,4 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import assert from 'node:assert/strict';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
@@ -14,7 +15,7 @@ const resolve = { collection: 'blockers', id: 'B1', record_revision: 3, kind: 'r
 const savedDraft = { ...resolve, token: 'legacy-resolve' };
 function legacyStorage({ delivery = null, kind = 'resolve' } = {}) {
   const storage = memoryStorage();
-  storage.setItem('request-journal:replies:v1:C1', JSON.stringify({ version: 1, drafts: [{ ...savedDraft, kind }], delivery }));
+  storage.setItem(`${replyStoragePrefix}C1`, JSON.stringify({ version: 1, drafts: [{ ...savedDraft, kind }], delivery }));
   return storage;
 }
 const update = (expected_revision, upsert = {}) => ({ expected_revision,
@@ -120,9 +121,9 @@ for (const mode of ['Later', 'Alternative', 'Other', 'Comment']) test(`a retired
 test('an old pending Blocker resolve delivery reconciles its historical receipt without resolving the obstacle', () => {
   const comment = { collection: 'requests', id: 'R1', record_revision: 1, kind: 'comment', text: 'Keep the original context.' };
   const storage = legacyStorage({ delivery: { id: 'old-delivery', conversation_id: 'C1', items: [resolve, comment], tokens: ['legacy-resolve', 'legacy-comment'], status: 'sending' } });
-  const saved = JSON.parse(storage.getItem('request-journal:replies:v1:C1'));
+  const saved = JSON.parse(storage.getItem(`${replyStoragePrefix}C1`));
   saved.drafts.push({ ...comment, token: 'legacy-comment' });
-  storage.setItem('request-journal:replies:v1:C1', JSON.stringify(saved));
+  storage.setItem(`${replyStoragePrefix}C1`, JSON.stringify(saved));
   const drafts = new ReplyDrafts(storage, 'C1');
   assert.equal(drafts.storageAvailable, true);
   assert.equal(drafts.delivery.status, 'uncertain');

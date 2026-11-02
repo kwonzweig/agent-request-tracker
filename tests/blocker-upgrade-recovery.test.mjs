@@ -1,3 +1,4 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import assert from 'node:assert/strict';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
@@ -29,7 +30,7 @@ for (const kind of ['resolve', 'acknowledge']) test(`an unrecorded legacy ${kind
   const comment = { collection: 'requests', id: 'R1', record_revision: 1, kind: 'comment', text: 'Keep the account scope. Do not publish anything.' };
   const blockerComment = { collection: 'blockers', id: 'B1', record_revision: 1, kind: 'comment', text: 'I logged in to the linked account.' };
   const items = [retired, comment, blockerComment], tokens = ['old-action', 'old-context', 'old-report'];
-  storage.setItem('request-journal:replies:v1:C1', JSON.stringify({ version: 1,
+  storage.setItem(`${replyStoragePrefix}C1`, JSON.stringify({ version: 1,
     drafts: items.map((item, index) => ({ ...item, token: tokens[index] })),
     delivery: { id: 'old-delivery', conversation_id: 'C1', items, tokens, status: 'sending' },
   }));

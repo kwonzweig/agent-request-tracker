@@ -4,8 +4,9 @@ import { normalizeJournal, journalAt, recordRevision, historyTurns, hasChoices, 
 import { workspaceGroups, turnChanges, attentionState, needsAttention, attentionItems, inheritedWorkspace } from './journal-views.mjs';
 import { formatReplyText } from './reply-text.mjs';
 import { evaluateCompletion, evaluateStopAssessment } from './completion.mjs';
+import { replyResourcePrefix } from './compatibility.mjs';
 
-const app = new App({ name: 'Request Tracker', version: '0.6.2' });
+const app = new App({ name: 'Request Tracker', version: '0.6.3' });
 const extensions = new OpenAIExtensions(app);
 const $ = id => document.getElementById(id);
 const root = $('rjc');
@@ -846,7 +847,7 @@ async function sendReplyMessage(message) {
 function replyMessage(delivery, summary) {
   const envelope = { conversation_id: delivery.conversation_id, delivery_id: delivery.id, items: structuredClone(delivery.items) };
   return { role: 'user', content: [{ type: 'text', text: summary },
-    { type: 'resource', resource: { uri: `request-journal://reply/${delivery.id}`, mimeType: 'application/json', text: JSON.stringify(envelope) } }],
+    { type: 'resource', resource: { uri: `${replyResourcePrefix}${delivery.id}`, mimeType: 'application/json', text: JSON.stringify(envelope) } }],
   _meta: { 'openai/message': { target: 'active', send: true } } };
 }
 function sameKeys(value, keys) {
@@ -861,7 +862,7 @@ function reviewedReply(delivery) {
         !sameKeys(summary, ['type', 'text']) || summary.type !== 'text' || typeof summary.text !== 'string' || !summary.text.trim() ||
         !sameKeys(resource, ['type', 'resource']) || resource.type !== 'resource' ||
         !sameKeys(resource.resource, ['uri', 'mimeType', 'text']) ||
-        resource.resource.uri !== `request-journal://reply/${delivery.id}` || resource.resource.mimeType !== 'application/json' ||
+        resource.resource.uri !== `${replyResourcePrefix}${delivery.id}` || resource.resource.mimeType !== 'application/json' ||
         typeof resource.resource.text !== 'string' || !sameKeys(message._meta, ['openai/message']) ||
         !sameKeys(route, ['target', 'send']) || route.target !== 'active' || route.send !== true) return null;
     try {

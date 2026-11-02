@@ -1,3 +1,4 @@
+import { replyStoragePrefix } from '../src/compatibility.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { OpenAIMessageParamsSchema } from '@openai/mcp-extensions/app';
@@ -97,7 +98,7 @@ test('lost send acknowledgement stays locked across reopen and payload is frozen
   ui.show(previewState()); input(ui, '#jc-attention [data-record="B1"] textarea', '처음 댓글'); choose(ui);
   await send(ui); const envelope = ui.envelope();
   input(ui, '#jc-attention [data-record="B1"] textarea', '나중에 편집한 댓글');
-  const persisted = JSON.parse(storage.getItem('request-journal:replies:v1:C1:delivery'));
+  const persisted = JSON.parse(storage.getItem(`${replyStoragePrefix}C1:delivery`));
   assert.deepEqual(persisted.items, envelope.items);
   const reopened = await view({ storage }); reopened.show(previewState());
   await send(reopened); assert.equal(reopened.sent.length, 0);

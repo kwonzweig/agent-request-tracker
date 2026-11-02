@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { legacyDataEnvironment } from '../src/compatibility.mjs';
 import { execFile } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
@@ -12,7 +13,7 @@ const runFile = promisify(execFile);
 const cliPath = fileURLToPath(new URL('../src/cli.mjs', import.meta.url));
 
 async function inTemp(run) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'request-journal-test-'));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'request-tracker-test-'));
   try { await run(dir); } finally { await fs.rm(dir, { recursive: true, force: true }); }
 }
 
@@ -203,7 +204,7 @@ test('validator rejects done requests without completion evidence', () => {
 test('CLI reads, updates, and validates using the configured data directory', async () => inTemp(async dir => {
   const input = path.join(dir, 'update.json');
   await fs.writeFile(input, JSON.stringify(update(0, 'T1', { requests: [request()] })));
-  const env = { ...process.env, REQUEST_JOURNAL_DATA_DIR: dir };
+  const env = { ...process.env, REQUEST_TRACKER_DATA_DIR: dir };
   const changed = await runFile(process.execPath, [cliPath, 'update', '--conversation', 'conversation-1', '--input', input], { env });
   assert.equal(JSON.parse(changed.stdout).revision, 1);
   const read = await runFile(process.execPath, [cliPath, 'read', '--conversation', 'conversation-1'], { env });
@@ -608,7 +609,8 @@ test('CLI rejects bad arguments and invalid input without writing or printing su
   const input = path.join(dir, 'bad-input.json');
   await fs.writeFile(input, '{bad json');
   const env = { ...process.env };
-  delete env.REQUEST_JOURNAL_DATA_DIR;
+  delete env.REQUEST_TRACKER_DATA_DIR;
+  delete env[legacyDataEnvironment];
   for (const args of [
     [], ['bogus'], ['read', '--conversation', 'c'],
     ['read', '--conversation', 'c', '--data-dir', dir, '--input', input],

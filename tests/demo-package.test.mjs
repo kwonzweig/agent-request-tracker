@@ -182,18 +182,18 @@ async function runGeneratedDemo() {
 
 test('scenario adapter accepts only allowlisted keys from its own iframe and resets fictional drafts', async () => {
   const demo = await runGeneratedDemo(), initial = demo.frame.getAttribute('srcdoc');
-  demo.receive({}, { type: 'request-journal-demo-scenario', scenario: 'closed' });
+  demo.receive({}, { type: 'request-tracker-demo-scenario', scenario: 'closed' });
   assert.equal(demo.frame.getAttribute('srcdoc'), initial);
-  for (const data of [null, {}, { type: 'other', scenario: 'closed' }, { type: 'request-journal-demo-scenario', scenario: '__proto__' },
-    { type: 'request-journal-demo-scenario', scenario: '<script>bad()</script>' }]) {
+  for (const data of [null, {}, { type: 'other', scenario: 'closed' }, { type: 'request-tracker-demo-scenario', scenario: '__proto__' },
+    { type: 'request-tracker-demo-scenario', scenario: '<script>bad()</script>' }]) {
     demo.receive(demo.childIdentity, data);
     assert.equal(demo.frame.getAttribute('srcdoc'), initial);
   }
   demo.document.querySelector('#jc-attention [data-record="D1"][data-choice="friday"]').click();
   assert.equal(demo.document.getElementById('jc-send').disabled, false);
   await demo.scenario('later');
-  assert.deepEqual(demo.posted, [{ data: { type: 'request-journal-demo-scenario', scenario: 'later' }, target: '*' }]);
-  assert.equal(demo.document.querySelector('meta[name="request-journal-demo-scenario"]').getAttribute('content'), 'later');
+  assert.deepEqual(demo.posted, [{ data: { type: 'request-tracker-demo-scenario', scenario: 'later' }, target: '*' }]);
+  assert.equal(demo.document.querySelector('meta[name="request-tracker-demo-scenario"]').getAttribute('content'), 'later');
   assert.equal(demo.document.getElementById('demo-scenario').value, 'later');
   assert.equal(demo.document.getElementById('demo-result').hidden, true);
   await demo.scenario('open');

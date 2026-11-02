@@ -11,7 +11,7 @@ test('MCP exposes only the narrow app-only read operation and returns the saved 
   t.after(() => rm(dir, { recursive: true, force: true }));
   const client = new Client({ name: 'silent-read-test', version: '1.0.0' });
   await client.connect(new StdioClientTransport({ command: process.execPath, args: [resolve('src/server.mjs')],
-    env: { ...process.env, REQUEST_JOURNAL_DATA_DIR: dir }, stderr: 'pipe' }));
+    env: { ...process.env, REQUEST_TRACKER_DATA_DIR: dir }, stderr: 'pipe' }));
   try {
     const listed = await client.listTools(), tool = listed.tools.find(tool => tool.name === 'journal_mark_read');
     assert.ok(tool);

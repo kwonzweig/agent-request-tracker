@@ -1,3 +1,4 @@
+import { uiResourceUri } from '../src/compatibility.mjs';
 import { execFile } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { access, cp, lstat, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
@@ -9,9 +10,9 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { getDefaultEnvironment, StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
 const runFile = promisify(execFile);
-const name = 'request-journal', marketplace = 'request-journal-local';
+const name = 'request-tracker', marketplace = 'request-tracker-local';
 const packageRoot = fileURLToPath(new URL('../plugin/', import.meta.url));
-const resourceUri = 'ui://request-journal/tracker.html';
+const resourceUri = uiResourceUri;
 const requestOptions = { timeout: 10_000 };
 const safeSegment = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value);
 
@@ -81,13 +82,13 @@ export async function comparePackageFiles(builtRoot, cachedRoot) {
   return { status: differences.length ? 'mismatch' : 'match', files_checked: files.length, differences };
 }
 
-export async function checkPackagedProtocol(root, { dataDir = join(tmpdir(), `request-journal-preflight-${randomUUID()}`) } = {}) {
+export async function checkPackagedProtocol(root, { dataDir = join(tmpdir(), `request-tracker-preflight-${randomUUID()}`) } = {}) {
   // The missing directory is never created. No real conversation or journal is read.
   requireCheck(!(await exists(dataDir)), 'ISOLATED_DATA_PATH_ALREADY_EXISTS');
-  const client = new Client({ name: 'request-journal-install-preflight', version: '1.0.0' });
+  const client = new Client({ name: 'request-tracker-install-preflight', version: '1.0.0' });
   const transport = new StdioClientTransport({
     command: process.execPath, args: [join(root, 'dist/server.mjs')], cwd: root,
-    env: { ...getDefaultEnvironment(), REQUEST_JOURNAL_DATA_DIR: dataDir }, stderr: 'pipe',
+    env: { ...getDefaultEnvironment(), REQUEST_TRACKER_DATA_DIR: dataDir }, stderr: 'pipe',
   });
   // Drain diagnostics without forwarding potentially private output.
   transport.stderr?.on('data', () => {});
@@ -120,9 +121,9 @@ export async function checkPackagedProtocol(root, { dataDir = join(tmpdir(), `re
       readSchema.properties.record_revision.type === 'integer' && readSchema.properties.record_revision.exclusiveMinimum === 0 &&
       readSchema.properties.record_revision.maximum === Number.MAX_SAFE_INTEGER,
     'MCP_READ_MUTATION_SCHEMA_MISMATCH');
-    const read = await client.callTool({ name: 'journal_read', arguments: { conversation_id: 'request-journal-preflight' } }, undefined, requestOptions);
+    const read = await client.callTool({ name: 'journal_read', arguments: { conversation_id: 'request-tracker-preflight' } }, undefined, requestOptions);
     const journal = read.structuredContent?.journal;
-    requireCheck(!read.isError && journal?.schema_version === 1 && journal.conversation_id === 'request-journal-preflight' && journal.revision === 0 &&
+    requireCheck(!read.isError && journal?.schema_version === 1 && journal.conversation_id === 'request-tracker-preflight' && journal.revision === 0 &&
       ['requests', 'decisions', 'blockers', 'history'].every(key => Array.isArray(journal[key]) && journal[key].length === 0) && journal.turn === null, 'MCP_READ_CHECK_FAILED');
     const resource = await client.readResource({ uri: resourceUri }, requestOptions);
     const html = resource.contents.find(content => content.uri === resourceUri);
@@ -138,7 +139,7 @@ export async function checkRelocatedProtocol(builtRoot) {
   // Enumerate first to reject symlinks before copying distributable contents.
   requireCheck(!(await lstat(builtRoot)).isSymbolicLink(), 'PACKAGE_SYMLINK');
   const files = await packageFiles(builtRoot);
-  const isolatedRoot = await mkdtemp(join(tmpdir(), 'request-journal-relocated-'));
+  const isolatedRoot = await mkdtemp(join(tmpdir(), 'request-tracker-relocated-'));
   try {
     const copiedRoot = join(isolatedRoot, 'plugin');
     await cp(builtRoot, copiedRoot, { recursive: true });
@@ -173,7 +174,7 @@ export async function checkLocalInstall() {
   try {
     manifest = JSON.parse(await readFile(join(packageRoot, 'plugin.json'), 'utf8'));
     requireCheck(manifest.name === name && safeSegment(manifest.version), 'PACKAGE_MANIFEST_MISMATCH');
-    for (const file of ['dist/server.mjs', 'dist/hook.mjs', 'dist/cli.mjs', 'dist/journal.html', 'schema/journal.schema.json', 'skills/request-journal/SKILL.md', '.codex-plugin/plugin.json', '.mcp.json', 'LICENSE', 'THIRD_PARTY_NOTICES.txt']) {
+    for (const file of ['dist/server.mjs', 'dist/hook.mjs', 'dist/cli.mjs', 'dist/journal.html', 'schema/journal.schema.json', 'skills/request-tracker/SKILL.md', '.codex-plugin/plugin.json', '.mcp.json', 'LICENSE', 'THIRD_PARTY_NOTICES.txt']) {
       requireCheck(await exists(join(packageRoot, file)), 'PACKAGE_BUILD_INCOMPLETE');
     }
     report.package = { version: manifest.version, status: 'built' };

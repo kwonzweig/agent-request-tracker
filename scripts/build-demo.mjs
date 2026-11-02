@@ -90,14 +90,14 @@ function loadScenario(name){
 }
 window.addEventListener('load',()=>{
   const allowed=['open','later','reopened','closed'];
-  const selected=document.querySelector('meta[name="request-journal-demo-scenario"]').getAttribute('content');
+  const selected=document.querySelector('meta[name="request-tracker-demo-scenario"]').getAttribute('content');
   const initial=allowed.includes(selected)?selected:'open';
   loadScenario(initial);
   const selector=document.getElementById('demo-scenario');
   for(const option of selector.querySelectorAll('option')) option.toggleAttribute('selected',option.value===initial);
   selector.addEventListener('change',event=>{
     const scenario=event.target.value;
-    if(allowed.includes(scenario)) window.parent.postMessage({type:'request-journal-demo-scenario',scenario},'*');
+    if(allowed.includes(scenario)) window.parent.postMessage({type:'request-tracker-demo-scenario',scenario},'*');
   });
 });
 `;
@@ -112,7 +112,7 @@ const hash=text=>"'sha256-"+createHash('sha256').update(text).digest('base64')+"
 const css=html.match(/<style>([\s\S]*?)<\/style>/)[1];
 const scriptHash=hash(html.match(/<script>([\s\S]*?)<\/script>/)[1]);
 const csp="default-src 'none'; script-src "+scriptHash+"; style-src "+hash(css)+"; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'";
-html=html.replace('<meta charset="utf-8">','<meta charset="utf-8"><meta name="request-journal-demo-scenario" content="open"><meta http-equiv="Content-Security-Policy" content="'+csp+'"><meta name="referrer" content="no-referrer">');
+html=html.replace('<meta charset="utf-8">','<meta charset="utf-8"><meta name="request-tracker-demo-scenario" content="open"><meta http-equiv="Content-Security-Policy" content="'+csp+'"><meta name="referrer" content="no-referrer">');
 // Script-only sandbox: no host API, same-origin access, popups or parent navigation.
 const escapeAttr=text=>text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 // The opaque-origin child sends only a scenario key. Reloading its srcdoc gives
@@ -123,8 +123,8 @@ const template=frame.getAttribute('srcdoc');
 const allowed=new Set(['open','later','reopened','closed']);
 window.addEventListener('message',event=>{
   const data=event.data;
-  if(event.source!==frame.contentWindow||!data||data.type!=='request-journal-demo-scenario'||!allowed.has(data.scenario)) return;
-  frame.setAttribute('srcdoc',template.replace('<meta name="request-journal-demo-scenario" content="open">','<meta name="request-journal-demo-scenario" content="'+data.scenario+'">'));
+  if(event.source!==frame.contentWindow||!data||data.type!=='request-tracker-demo-scenario'||!allowed.has(data.scenario)) return;
+  frame.setAttribute('srcdoc',template.replace('<meta name="request-tracker-demo-scenario" content="open">','<meta name="request-tracker-demo-scenario" content="'+data.scenario+'">'));
 });
 `.replace(/\r\n?/g,'\n');
 const output='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src '+scriptHash+' '+hash(parentScript)+'; frame-src about:; style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'"><title>Request Tracker demo</title><style>html,body{margin:0;height:100%;background:#17191d}iframe{border:0;width:100%;height:100%;display:block}</style></head><body><iframe id="demo-frame" title="Request Tracker — fictional interactive demo" sandbox="allow-scripts" srcdoc="'+escapeAttr(html)+'"></iframe><script>'+parentScript+'</script></body></html>';

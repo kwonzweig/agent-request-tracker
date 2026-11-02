@@ -1,4 +1,5 @@
 import { actionVersionChanged } from './record-freshness.mjs';
+import { replyStoragePrefix } from './compatibility.mjs';
 
 export const recordCollections = ['requests', 'decisions', 'blockers', 'cards'];
 
@@ -109,7 +110,7 @@ export class ReplyDrafts {
   constructor(storage, conversationId) {
     this.storage = storage;
     this.conversationId = conversationId;
-    this.key = `request-journal:replies:v1:${conversationId}`;
+    this.key = `${replyStoragePrefix}${conversationId}`;
     this.drafts = new Map();
     this.delivery = null;
     this.deliveryAttempt = { generation: 0, status: 'initial' };

@@ -1,3 +1,4 @@
+import { uiResourceUri } from '../src/compatibility.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
@@ -25,10 +26,10 @@ async function fixture(t) {
 async function buildFixture(t) {
   const root = await fixture(t);
   await writeFile(join(root, 'LICENSE'), 'Fixture project license\n');
-  for (const path of ['src', 'plugin/hooks', 'skills/request-journal', 'schema']) await mkdir(join(root, path), { recursive: true });
+  for (const path of ['src', 'plugin/hooks', 'skills/request-tracker', 'schema']) await mkdir(join(root, path), { recursive: true });
   for (const entry of ['server', 'hook', 'cli', 'app']) await writeFile(join(root, `src/${entry}.mjs`), `console.log('${entry}');`);
   await writeFile(join(root, 'src/app.html'), '<html><script>/* JOURNAL_SCRIPT */</script></html>');
-  for (const path of ['plugin/plugin.json', 'plugin/mcp.json', 'plugin/hooks/hooks.json', 'skills/request-journal/SKILL.md', 'schema/journal.schema.json']) {
+  for (const path of ['plugin/plugin.json', 'plugin/mcp.json', 'plugin/hooks/hooks.json', 'skills/request-tracker/SKILL.md', 'schema/journal.schema.json']) {
     await cp(join(repositoryRoot, path), join(root, path));
   }
   return root;
@@ -84,11 +85,11 @@ test('npm start serves the built UI resource from a cold isolated MCP process', 
   const root = await fixture(t), dataDir = join(root, 'not-created');
   const client = new Client({ name: 'journal-start-test', version: '1' });
   const transport = new StdioClientTransport({ command: process.execPath, args: [resolve(entrypoint)],
-    env: { ...getDefaultEnvironment(), REQUEST_JOURNAL_DATA_DIR: dataDir }, stderr: 'pipe' });
+    env: { ...getDefaultEnvironment(), REQUEST_TRACKER_DATA_DIR: dataDir }, stderr: 'pipe' });
   transport.stderr?.on('data', () => {});
   try {
     await client.connect(transport);
-    const resource = await client.readResource({ uri: 'ui://request-journal/tracker.html' });
+    const resource = await client.readResource({ uri: uiResourceUri });
     assert.equal(resource.contents[0].mimeType, 'text/html;profile=mcp-app');
     assert.match(resource.contents[0].text, /Request Tracker/);
     await assert.rejects(access(dataDir), error => error.code === 'ENOENT');

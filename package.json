@@ -1,6 +1,6 @@
 {
   "name": "request-tracker",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "A Codex plugin that tracks your requests and decisions across a conversation.",
   "license": "MIT",
   "repository": {

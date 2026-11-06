@@ -26,14 +26,14 @@ export const mockHostPlugin = {
       'export const App = globalThis.TestApp; export const applyDocumentTheme = globalThis.TestTheme; export const applyHostStyleVariables = globalThis.TestStyles;' }));
   },
 };
-export async function view({ canSend = true, storage = memoryStorage(), sendImpl, toolImpl, hostContext = { theme: 'dark' } } = {}) {
+export async function view({ canSend = true, storage = memoryStorage(), sendImpl, toolImpl, connectImpl, hostContext = { theme: 'dark' } } = {}) {
   const { window, document } = parseHTML(await readFile('src/app.html', 'utf8'));
   window.localStorage = storage;
   const sent = [], toolCalls = [], themes = [], styles = [];
   let app, refresh, reply;
   class App {
     constructor() { app = this; }
-    async connect() {}
+    async connect() { await connectImpl?.(this); }
     getHostContext() { return hostContext; }
     async callServerTool(request) {
       toolCalls.push(structuredClone(request));
@@ -50,8 +50,11 @@ export async function view({ canSend = true, storage = memoryStorage(), sendImpl
   await tick();
   return { window, document, sent, toolCalls, themes, styles, storage,
     show(state) { reply = { structuredContent: { journal: state } }; app.ontoolresult(reply); },
+    toolInput(args) { app.ontoolinput?.({ arguments: args }); },
+    toolResult(result) { app.ontoolresult(result); },
     setRead(state) { reply = { structuredContent: { journal: state } }; },
     async refresh(state) { reply = { structuredContent: { journal: state } }; await refresh(); },
+    poll() { return refresh(); },
     theme(context) { app.onhostcontextchanged(context); },
     envelope() { return JSON.parse(sent.at(-1).content.find(block => block.type === 'resource').resource.text); },
   };

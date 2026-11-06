@@ -12,7 +12,7 @@ import { isTrackingEnabled, setTrackingEnabled } from './tracking.mjs';
 import { recordPresentation } from './presentation.mjs';
 import { uiResourceUri } from './compatibility.mjs';
 
-const runtimeVersion = '0.6.3';
+const runtimeVersion = '0.6.4';
 const server = new McpServer({ name: 'request-tracker', version: runtimeVersion });
 const uri = uiResourceUri;
 const id = z.string().min(1).max(128).refine(isJournalId,'Use a safe journal identifier');

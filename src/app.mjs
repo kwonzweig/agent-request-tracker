@@ -5,8 +5,9 @@ import { workspaceGroups, turnChanges, attentionState, needsAttention, attention
 import { formatReplyText } from './reply-text.mjs';
 import { evaluateCompletion, evaluateStopAssessment } from './completion.mjs';
 import { replyResourcePrefix } from './compatibility.mjs';
+import { isJournalId } from './identity.mjs';
 
-const app = new App({ name: 'Request Tracker', version: '0.6.3' });
+const app = new App({ name: 'Request Tracker', version: '0.6.4' });
 const extensions = new OpenAIExtensions(app);
 const $ = id => document.getElementById(id);
 const root = $('rjc');
@@ -16,6 +17,7 @@ const statuses = { proposed: ['Proposed', 'neutral'], active: ['In progress', 'a
   cancelled: ['× Cancelled', 'cancelled'], open: ['Open', 'pending'], answered: ['Answered', 'answered'],
   superseded: ['Superseded', 'superseded'], resolved: ['✓ Resolved', 'resolved'], dismissed: ['Dismissed', 'neutral'] };
 let current = null, drafts = null, tab = 'attention', requestFilter = 'active', requestView = 'tree', cardFilter = 'all', historyTurnId = null, revealedRequest = null;
+let startupConversationId = null, startupResult = 'pending';
 let poll, reading = null, preparing = false, retrying = false, connected = false, sequence = 0, connectionNotice = { kind: 'read' };
 const disclosures = new Map();
 const otherEdits = new Map();
@@ -959,7 +961,10 @@ function accept(result) {
   if (result?.isError) throw new Error(result.content?.find(block => block.type === 'text')?.text || 'Could not read the saved journal.');
   const journal = result?.structuredContent?.journal;
   if (!journal) throw new Error('No journal data was returned.');
-  if (current && journal.conversation_id !== current.conversation_id) throw new Error('Received a different conversation. The current journal was kept.');
+  const conversationId = current?.conversation_id ?? startupConversationId;
+  if (conversationId && journal.conversation_id !== conversationId) {
+    throw new Error(current ? 'Received a different conversation. The current journal was kept.' : 'Received a different conversation.');
+  }
   if (current && journal.revision < current.revision) return false;
   const normalized = normalizeJournal(journal);
   if (current && normalized.revision === current.revision && JSON.stringify(normalized) === JSON.stringify(current)) {
@@ -984,18 +989,25 @@ function accept(result) {
   return true;
 }
 async function readLatest() {
-  if (!current) throw new Error('The journal has not loaded yet.');
+  const conversationId = current?.conversation_id ?? startupConversationId;
+  if (!conversationId) throw new Error('The journal has not loaded yet.');
   if (reading) return reading;
   reading = (async () => {
-    const result = await app.callServerTool({ name: 'journal_read', arguments: { conversation_id: current.conversation_id } });
+    const result = await app.callServerTool({ name: 'journal_read', arguments: { conversation_id: conversationId } });
+    if (!current && startupResult !== 'missing-journal') return;
     if (!accept(result)) throw new Error('Could not confirm the latest records.');
   })();
   try { await reading; } finally { reading = null; }
 }
 async function refresh() {
-  if (!current || preparing) return;
+  const loading = !current;
+  if (!connected || preparing || (loading && (startupResult !== 'missing-journal' || !startupConversationId))) return;
   try { await readLatest(); }
-  catch (error) { notice(`Could not refresh. Showing the last saved version. ${error.message}`, true, 'read'); }
+  catch (error) {
+    if (loading && (current || startupResult !== 'missing-journal')) return;
+    const message = loading ? 'Could not load the saved journal.' : 'Could not refresh. Showing the last saved version.';
+    notice(`${message} ${error.message}`, true, 'read');
+  }
 }
 
 async function retryReply(review, original) {
@@ -1119,9 +1131,28 @@ for (const [id, delta] of [['jc-prev', -1], ['jc-next', 1]]) $(id).addEventListe
 $('jc-request-view').addEventListener('change', () => { requestView = $('jc-request-view').value; render(); });
 $('jc-card-filter').addEventListener('change', () => { cardFilter = $('jc-card-filter').value; render(); });
 $('jc-send').addEventListener('click', () => sendReply());
-app.ontoolresult = result => { try { accept(result); } catch (error) { notice(error.message, true, 'read'); } };
+app.ontoolinput = input => {
+  const id = input?.arguments?.conversation_id;
+  if (current || startupConversationId || !isJournalId(id)) return;
+  startupConversationId = id;
+  void refresh();
+};
+app.ontoolresult = result => {
+  try { accept(result); }
+  catch (error) {
+    if (!current) {
+      // Keep an explicit display failure visible until a valid journal arrives.
+      if (result?.isError) startupResult = 'failed';
+      else if (startupResult === 'failed') return;
+      else if (!result?.structuredContent?.journal) startupResult = 'missing-journal';
+    }
+    notice(error.message, true, 'read');
+    if (!current) void refresh();
+  }
+};
 app.onteardown = async () => { clearInterval(poll); drafts?.persist(); return {}; };
 (async () => {
   await app.connect(); connected = true; applyHostContext(app.getHostContext?.()); render(); poll = setInterval(refresh, 2500);
+  if (!current) void refresh();
 })().catch(error => { notice(`Could not connect to the chat app. ${error.message}`, true); renderReplyBar(); });
 window.addEventListener('pagehide', () => { clearInterval(poll); drafts?.persist(); }, { once: true });

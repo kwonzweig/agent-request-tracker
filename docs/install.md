@@ -116,4 +116,6 @@ Delete the printed temporary directory when finished. The preflight compares the
 
 ## Host limits
 
+If the widget opens without its saved records, it retries a read for the conversation that opened it. This does not send a message or change any records. An explicit tool error, such as tracking being OFF, remains visible. If loading still fails, keep the error text for diagnosis; do not delete your saved data or turn tracking on in another conversation as a workaround.
+
 Local marketplace installation and cache refresh were checked on Windows with Codex CLI 0.142.5. Other clients may expose different plugin controls. A passing package check does not verify native rendering, message delivery, silent acknowledgments or hook continuation in your host. Test those actions in a disposable conversation before relying on them. Other agent apps are unverified.
